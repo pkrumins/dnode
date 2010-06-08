@@ -1,0 +1,18 @@
+Simple asynchronous remote method invocation for node.js.
+Note: not everything is implemented yet
+
+Example:
+    var DNode = require('dnode').DNode;
+    var sys = require('sys');
+    
+    // server-side:
+    DNode({
+        timesTen : function (n) { return n * 10 }
+    }).listen(6060);
+    
+    // client-side:
+    var dnode = DNode().connect(6060);
+    dnode.timesTen(5, function (res) {
+        sys.log(res); // 50, computation executed on the server
+    });
+ 
