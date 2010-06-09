@@ -5,6 +5,7 @@ var sys = require('sys');
 exports.DNode = DNode;
 function DNode (wrapper) {
     if (!(this instanceof DNode)) return new DNode(wrapper);
+    var dnode = this;
     
     // share an object or a function that returns an object
     var f = wrapper instanceof Function
@@ -13,18 +14,17 @@ function DNode (wrapper) {
     ;
     
     var handlers = {}; // id => function
-    var sock;
     var sendID = 0;
     
-    this.send = function (req) {
+    function send(sock, req) {
         handlers[sendID] = req.callback;
         sock.write(JSON.stringify({
             id : sendID,
             method : req.method,
             arguments : req.arguments,
-        }));
+        }) + '\n');
         sendID ++;
-    };
+    }
     
     function firstType (args, type) {
         return [].concat.apply([],args).filter(function (x) {
@@ -38,21 +38,28 @@ function DNode (wrapper) {
         var port = firstType(arguments,'number') || kwargs.port;
         var block = firstType(arguments,'function') || kwargs.block;
         
-        sock = net.createConnection(port, host);
+        var sock = net.createConnection(port, host);
         emitCommands(sock);
         sock.addListener('command', handler(f()));
-        
-        this.send({
-            method : 'methods',
-            arguments : [],
-            callback : function (methods) {
-                var obj = {};
-                for (var methods in methods) {
-                    obj[method] = function () {
-                    };
-                }
-                block.call(this);
-            },
+        sock.addListener('connect', function () {
+            send(sock, {
+                method : 'methods',
+                arguments : [],
+                callback : function (methods) {
+                    var obj = {};
+                    methods.forEach(function (method) {
+                        obj[method] = function () {
+                            var args = [].concat.apply([],arguments);
+                            send(sock, {
+                                method : method,
+                                arguments : args.slice(0,-1),
+                                callback : args.slice(-1)[0],
+                            });
+                        };
+                    });
+                    block.call(dnode, obj);
+                },
+            });
         });
     };
     
@@ -77,29 +84,26 @@ function DNode (wrapper) {
                     instance.methods.push(method);
                 }
             }
-            sys.log(sys.inspect(cmd));
             
             if ('result' in cmd) {
                 handlers[cmd.id](cmd.result);
             }
             else if ('method' in cmd) {
-                var obj = instance[cmd.name];
+                var obj = instance[cmd.method];
                 if (typeof(obj) in 'string number undefined'.split(' ')) {
                     sock.write(JSON.stringify({
-                        "id" : cmd.id,
-                        "result" : obj,
+                        "id" : cmd.id, "result" : obj,
                     }) + '\n');
                 }
-                else if (obj instanceof Function) {
+                else if (typeof(obj) == 'function') {
+                    var res = obj.apply(instance, cmd.arguments);
                     sock.write(JSON.stringify({
-                        "id" : cmd.id,
-                        "result" : obj.apply(instance, cmd.arguments),
+                        "id" : cmd.id, "result" : res,
                     }) + '\n');
                 }
                 else {
                     sock.write(JSON.stringify({
-                        "id" : cmd.id,
-                        "result" : obj,
+                        "id" : cmd.id, "result" : obj,
                     }) + '\n');
                 }
             }
