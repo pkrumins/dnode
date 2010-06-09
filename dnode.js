@@ -1,6 +1,7 @@
 var net = require('net');
-var BufferList = require('bufferlist').BufferList;
 var sys = require('sys');
+var BufferList = require('bufferlist').BufferList;
+var EventEmitter = require('events').EventEmitter;
 
 exports.DNode = DNode;
 function DNode (wrapper) {
@@ -14,22 +15,6 @@ function DNode (wrapper) {
         : function () { return wrapper }
     ;
     
-    var handlers = {}; // id => function
-    var sendID = 0;
-    
-    function send(sock, req) {
-        handlers[sendID] = req.callback;
-        try {
-            sock.write(JSON.stringify({
-                id : sendID,
-                method : req.method,
-                arguments : req.arguments,
-            }) + '\n');
-            sendID ++;
-        }
-        catch (err) { }
-    }
-    
     function firstType (args, type) {
         return [].concat.apply([],args).filter(function (x) {
             return typeof(x) == type
@@ -42,99 +27,111 @@ function DNode (wrapper) {
         var port = firstType(arguments,'number') || kwargs.port;
         var block = firstType(arguments,'function') || kwargs.block;
         
-        var sock = net.createConnection(port, host);
-        emitCommands(sock);
-        sock.addListener('command', handler(f()));
-        sock.addListener('connect', function () {
-            send(sock, {
-                method : 'methods',
-                arguments : [],
-                callback : function (methods) {
-                    var obj = {};
-                    methods.forEach(function (method) {
-                        obj[method] = function () {
-                            var args = [].concat.apply([],arguments);
-                            send(sock, {
-                                method : method,
-                                arguments : args.slice(0,-1),
-                                callback : function () {
-                                    var argv = [].concat.apply([],arguments);
-                                    args.slice(-1)[0].apply(obj, argv);
-                                }
-                            });
-                        };
-                    });
-                    block.call(obj, dnode);
-                },
-            });
+        var conn = new DNodeConn({
+            stream : net.createConnection(port, host),
+            instance : f(),
         });
-        this.end = function () { sock.destroy() };
+        conn.addListener('remote', function (remote) {
+            sys.log('remote');
+            block.call(remote, conn);
+        });
     };
     
     this.listen = function () {
         var kwargs = firstType(arguments,'object') || {};
-        var host = firstType(arguments,'string')
-            || kwargs.host || '127.0.0.1';
+        var host = firstType(arguments,'string') || kwargs.host;
         var port = firstType(arguments,'number') || kwargs.port;
+        var block = firstType(arguments,'function') || kwargs.block;
         
-        var server = net.createServer(function (stream) {
-            sock = stream;
-            emitCommands(sock);
-            sock.addListener('command', handler(f()));
+        net.createServer(function (stream) {
+            var conn = new DNodeConn({
+                stream : stream,
+                instance : f(),
+            });
+        }).listen(port, host);
+    };
+}
+
+DNodeConn.prototype = new EventEmitter;
+function DNodeConn (args) {
+    var conn = this;
+    
+    var sock = args.stream;
+    var instance = args.instance;
+    var remote;
+    
+    var bufferList = new BufferList;
+    sock.addListener('data', function (buf) {
+        bufferList.push(buf);
+        var n = buf.toString().indexOf('\n');
+        if (n >= 0) {
+            var i = bufferList.length - (buf.length - n);
+            var line = bufferList.take(i); // up to the \n
+            bufferList.advance(i + 1); // past the \n
+            
+            var cmd = JSON.parse(line);
+            if ('method' in cmd) {
+                conn.emit('request', cmd);
+            }
+            else if ('result' in cmd) {
+                conn.emit('response', cmd);
+            }
+        }
+    });
+    
+    sock.addListener('connect', function () {
+        conn.request({
+            method : 'methods',
+            block : function (methods) {
+                remote = {};
+                methods.forEach(function (method) {
+                    remote[method] = function () {
+                        var argv = [].concat.apply([],arguments);
+                        conn.request({
+                            method : method,
+                            arguments : argv.slice(0,-1),
+                            block : argv.slice(-1)[0],
+                        });
+                    };
+                });
+                conn.emit('methods', methods);
+                conn.emit('remote', remote);
+            }
         });
-        server.listen(port, host);
-        this.end = function () {
-            handlers = {};
-            server.close();
-        };
+    });
+    
+    var handlers = {}; // id => function
+    var sendID = 0;
+    
+    this.request = function (req) {
+        sock.write(JSON.stringify({
+            id : sendID,
+            method : req.method,
+            arguments : req.arguments || [],
+        }) + '\n');
+        handlers[sendID] = req.block;
+        sendID ++;
     };
     
-    function handler(instance) {
-        return function (cmd) {
-            if (!('methods' in instance)) {
-                instance.methods = [];
-                for (var method in instance) {
-                    instance.methods.push(method);
-                }
+    this.addListener('request', function (req) {
+        var f = instance[req.method];
+        if (req.method == 'methods' && f == undefined) {
+            var methods = ['methods'];
+            for (var method in instance) {
+                methods.push(method);
             }
-            
-            if ('result' in cmd) {
-                handlers[cmd.id].call(instance,cmd.result);
-            }
-            else if ('method' in cmd) {
-                var obj = instance[cmd.method];
-                if (typeof(obj) in 'string number undefined'.split(' ')) {
-                    sock.write(JSON.stringify({
-                        "id" : cmd.id, "result" : obj,
-                    }) + '\n');
-                }
-                else if (typeof(obj) == 'function') {
-                    var res = obj.apply(instance, cmd.arguments);
-                    sock.write(JSON.stringify({
-                        "id" : cmd.id, "result" : res,
-                    }) + '\n');
-                }
-                else {
-                    sock.write(JSON.stringify({
-                        "id" : cmd.id, "result" : obj,
-                    }) + '\n');
-                }
-            }
-        };
-    }
+            f = function () { return methods };
+        }
+        
+        var res = f.apply(instance, req.arguments);
+        sock.write(JSON.stringify({
+            id : req.id,
+            result : res,
+        }) + '\n');
+    });
     
-    function emitCommands(emitter) {
-        var bufferList = new BufferList;
-        emitter.addListener('data', function (buf) {
-            bufferList.push(buf);
-            var n = buf.toString().indexOf('\n');
-            if (n >= 0) {
-                var i = bufferList.length - (buf.length - n);
-                var line = bufferList.take(i); // up to the \n
-                bufferList.advance(i + 1); // past the \n
-                emitter.emit('command', JSON.parse(line));
-            }
-        });
-    }
+    this.addListener('response', function (res) {
+        handlers[res.id].call(remote, res.result);
+    });
 };
 
