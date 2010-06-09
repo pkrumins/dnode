@@ -5,6 +5,7 @@ var sys = require('sys');
 exports.DNode = DNode;
 function DNode (wrapper) {
     if (!(this instanceof DNode)) return new DNode(wrapper);
+    if (wrapper == undefined) wrapper = {};
     var dnode = this;
     
     // share an object or a function that returns an object
@@ -18,12 +19,15 @@ function DNode (wrapper) {
     
     function send(sock, req) {
         handlers[sendID] = req.callback;
-        sock.write(JSON.stringify({
-            id : sendID,
-            method : req.method,
-            arguments : req.arguments,
-        }) + '\n');
-        sendID ++;
+        try {
+            sock.write(JSON.stringify({
+                id : sendID,
+                method : req.method,
+                arguments : req.arguments,
+            }) + '\n');
+            sendID ++;
+        }
+        catch (err) { }
     }
     
     function firstType (args, type) {
@@ -53,14 +57,18 @@ function DNode (wrapper) {
                             send(sock, {
                                 method : method,
                                 arguments : args.slice(0,-1),
-                                callback : args.slice(-1)[0],
+                                callback : function () {
+                                    var argv = [].concat.apply([],arguments);
+                                    args.slice(-1)[0].apply(obj, argv);
+                                }
                             });
                         };
                     });
-                    block.call(dnode, obj);
+                    block.call(obj, dnode);
                 },
             });
         });
+        this.end = function () { sock.destroy() };
     };
     
     this.listen = function () {
@@ -69,11 +77,16 @@ function DNode (wrapper) {
             || kwargs.host || '127.0.0.1';
         var port = firstType(arguments,'number') || kwargs.port;
         
-        net.createServer(function (stream) {
+        var server = net.createServer(function (stream) {
             sock = stream;
             emitCommands(sock);
             sock.addListener('command', handler(f()));
-        }).listen(port, host);
+        });
+        server.listen(port, host);
+        this.end = function () {
+            handlers = {};
+            server.close();
+        };
     };
     
     function handler(instance) {
@@ -86,7 +99,7 @@ function DNode (wrapper) {
             }
             
             if ('result' in cmd) {
-                handlers[cmd.id](cmd.result);
+                handlers[cmd.id].call(instance,cmd.result);
             }
             else if ('method' in cmd) {
                 var obj = instance[cmd.method];
