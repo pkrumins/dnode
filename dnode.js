@@ -135,9 +135,9 @@ function DNodeConn (args) {
             }) + '\n');
         }
         
-        if (f instanceof Async) {
+        if (f.asynchronous == true) {
             var args = req.arguments.concat(respond);
-            f.callback.apply(instance, args);
+            f.apply(instance, args);
         }
         else {
             var res = f.apply(instance, req.arguments);
@@ -150,10 +150,10 @@ function DNodeConn (args) {
     });
 };
 
-exports.Async = Async;
-DNode.Async = Async;
-function Async (f) {
-    if (!(this instanceof Async)) return new Async(f);
-    this.callback = f;
+exports.async = async;
+DNode.async = async;
+function async (f) {
+    f.asynchronous = true;
+    return f;
 };
 
