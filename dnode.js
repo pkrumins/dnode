@@ -50,6 +50,11 @@ function DNode (wrapper) {
         }).listen(port, host);
     };
 }
+// So DNode.connect and DNode().connect do the same thing
+DNode.connect = function () {
+    var dnode = DNode();
+    return dnode.connect.apply(dnode,[].concat.apply([],arguments));
+};
 
 DNodeConn.prototype = new EventEmitter;
 function DNodeConn (args) {

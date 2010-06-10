@@ -8,11 +8,11 @@ var server = DNode({
 }).listen(6060);
 
 // client-side:
-DNode().connect(6060, function (dnode) {
-    this.timesTen(5, function (res) {
-        sys.puts(res); // 50, computation executed on the server
-        this.timesTen(res, function (n) {
-            sys.puts(n);
+DNode.connect(6060, function (dnode) {
+    this.timesTen(5, function (m) {
+        sys.puts(m); // 50, computation executed on the server
+        this.timesTen(m, function (n) {
+            sys.puts(n); // 50 * 10 == 500
         });
     });
 });
