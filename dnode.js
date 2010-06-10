@@ -128,15 +128,32 @@ function DNodeConn (args) {
             f = function () { return methods };
         }
         
-        var res = f.apply(instance, req.arguments);
-        sock.write(JSON.stringify({
-            id : req.id,
-            result : res,
-        }) + '\n');
+        function respond (res) {
+            sock.write(JSON.stringify({
+                id : req.id,
+                result : res,
+            }) + '\n');
+        }
+        
+        if (f instanceof Async) {
+            var args = req.arguments.concat(respond);
+            f.callback.apply(instance, args);
+        }
+        else {
+            var res = f.apply(instance, req.arguments);
+            respond(res);
+        }
     });
     
     this.addListener('response', function (res) {
         handlers[res.id].call(remote, res.result);
     });
+};
+
+exports.Async = Async;
+DNode.Async = Async;
+function Async (f) {
+    if (!(this instanceof Async)) return new Async(f);
+    this.callback = f;
 };
 
