@@ -32,7 +32,6 @@ function DNode (wrapper) {
             instance : f(),
         });
         conn.addListener('remote', function (remote) {
-            sys.log('remote');
             block.call(remote, conn);
         });
     };
@@ -64,7 +63,7 @@ function DNodeConn (args) {
     sock.addListener('data', function (buf) {
         bufferList.push(buf);
         var n = buf.toString().indexOf('\n');
-        if (n >= 0) {
+        while (n >= 0) {
             var i = bufferList.length - (buf.length - n);
             var line = bufferList.take(i); // up to the \n
             bufferList.advance(i + 1); // past the \n
@@ -76,6 +75,7 @@ function DNodeConn (args) {
             else if ('result' in cmd) {
                 conn.emit('response', cmd);
             }
+            n = buf.toString().indexOf('\n', n + 1);
         }
     });
     
