@@ -158,19 +158,13 @@ function async (f) {
     return f;
 };
 
-function values (obj) {
-    var acc;
-    for (var i in obj) acc.push(obj[i]);
-    return acc;
-}
-
 var io = require('socket.io');
 DNode.SocketIO = function SocketIO (opts) {
     if (opts === undefined) opts = {};
     if (!(this instanceof SocketIO)) return new SocketIO(opts);
     
     this.proxy = function (args) {
-        // Nodes maps names to host:port combos.
+        // Map names to (host:port)s.
         // It's a sort of whitelist in addition to a naming abstraction.
         var nodes = args.nodes || {};
         
@@ -189,7 +183,7 @@ DNode.SocketIO = function SocketIO (opts) {
             
             client.send(JSON.stringify({
                 emit : 'available',
-                addrs : values(whitelist),
+                addrs : Object.keys(nodes),
             }));
         });
         
@@ -198,23 +192,22 @@ DNode.SocketIO = function SocketIO (opts) {
             var conns = connections[client.sessionId];
             
             if (msg.action == 'connect') {
-                if (msg.addr in values(whitelist)) {
-                    var host = msg.addr.split(/:/)[0];
-                    var port = parseInt(msg.addr.split(/:/)[1], 10);
+                if (msg.node in nodes) {
+                    var node = nodes[msg.node];
                     
                     DNode(obj).connect(host, port, function (dnode) {
                         conns.push(dnode);
                         client.write(JSON.stringify({
                             emit : 'connected',
-                            addr : addr,
+                            host : host,
                         }));
                     });
                 }
                 else {
                     client.write(JSON.stringify({
                         emit : 'error',
-                        addr : addr,
-                        error : addr + ' is not in the whitelist',
+                        host : host,
+                        error : host + ' is not a recognized host',
                     }));
                 }
             }
