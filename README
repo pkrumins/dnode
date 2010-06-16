@@ -11,7 +11,7 @@ Example:
     }).listen(6060);
     
     // client-side:
-    var dnode = DNode().connect(6060);
+    var dnode = DNode.connect(6060);
     dnode.timesTen(5, function (res) {
         sys.log(res); // 50, computation executed on the server
     });

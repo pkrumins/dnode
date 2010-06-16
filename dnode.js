@@ -157,3 +157,55 @@ function async (f) {
     return f;
 };
 
+var io = require('socket.io');
+
+DNode.socketIO = function (opts) {
+    this.proxy = function (args) {
+        // whitelist maps names to host:port combos
+        var whitelist = args.whitelist || {};
+        
+        var server = args.server;
+        var connections = {};
+        
+        var socketIO = io.listen(server, {
+            onClientConnect : function (client) {
+                connections[client.sessionId] = {};
+                client.send(JSON.stringify({
+                    emit : 'available',
+                    addrs : Object.keys(whitelist),
+                }));
+            },
+            onClientMessage : function (msgString, client) {
+                var msg = JSON.parse(msgString);
+                var conns = connections[client.sessionId];
+                
+                if (msg.action == 'connect') {
+                    if (msg.addr in Object.keys(whitelist)) {
+                        DNode.connect(opts, function (dnode) {
+                            conns.push(dnode);
+                            client.write(JSON.stringify({
+                                emit : 'connected',
+                                addr : addr,
+                            }));
+                        });
+                    }
+                    else {
+                        client.write(JSON.stringify({
+                            emit : 'error',
+                            addr : addr,
+                            error : addr + ' is not in the whitelist',
+                        }));
+                    }
+                }
+                else {
+                    conns[];
+                    client.write(JSON.stringify({
+                    });
+                }
+            },
+            onClientDisconnect : function (msg, client) {
+            },
+        });
+    };
+};
+
