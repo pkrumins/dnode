@@ -32,7 +32,7 @@ function DNode (wrapper) {
             instance : f(),
         });
         conn.addListener('remote', function (remote) {
-            block.call(remote, conn);
+            block.call(remote, conn, remote);
         });
     };
     
