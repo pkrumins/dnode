@@ -158,6 +158,11 @@ function async (f) {
 };
 
 var io = require('socket.io');
+function values (obj) {
+    var acc;
+    for (var i in obj) acc.push(obj[i]);
+    return acc;
+}
 
 DNode.socketIO = function (opts) {
     this.proxy = function (args) {
@@ -166,13 +171,20 @@ DNode.socketIO = function (opts) {
         
         var server = args.server;
         var connections = {};
+        var objects = {}; // client session id => wrapped object
         
         var socketIO = io.listen(server, {
             onClientConnect : function (client) {
                 connections[client.sessionId] = {};
+                objects[client.sessionId] = {
+                    methods : function () {
+                        
+                    }
+                };
+                
                 client.send(JSON.stringify({
                     emit : 'available',
-                    addrs : Object.keys(whitelist),
+                    addrs : values(whitelist),
                 }));
             },
             onClientMessage : function (msgString, client) {
@@ -180,8 +192,11 @@ DNode.socketIO = function (opts) {
                 var conns = connections[client.sessionId];
                 
                 if (msg.action == 'connect') {
-                    if (msg.addr in Object.keys(whitelist)) {
-                        DNode.connect(opts, function (dnode) {
+                    if (msg.addr in values(whitelist)) {
+                        var host = msg.addr.split(/:/)[0];
+                        var port = parseInt(msg.addr.split(/:/)[1], 10);
+                        
+                        DNode(obj).connect(host, port, function (dnode) {
                             conns.push(dnode);
                             client.write(JSON.stringify({
                                 emit : 'connected',
@@ -198,9 +213,9 @@ DNode.socketIO = function (opts) {
                     }
                 }
                 else {
-                    conns[];
-                    client.write(JSON.stringify({
-                    });
+                    var conn = conns[msg.addr];
+                    var method = msg.method;
+                    // todo : stuff
                 }
             },
             onClientDisconnect : function (msg, client) {
