@@ -50,7 +50,8 @@ function DNode (wrapper) {
         }).listen(port, host);
     };
 }
-// So DNode.connect and DNode().connect do the same thing
+
+// So DNode.connect and DNode().connect do the same thing:
 DNode.connect = function () {
     var dnode = DNode();
     return dnode.connect.apply(dnode,[].concat.apply([],arguments));
@@ -157,70 +158,82 @@ function async (f) {
     return f;
 };
 
-var io = require('socket.io');
 function values (obj) {
     var acc;
     for (var i in obj) acc.push(obj[i]);
     return acc;
 }
 
-DNode.socketIO = function (opts) {
+var io = require('socket.io');
+DNode.SocketIO = function SocketIO (opts) {
+    if (opts === undefined) opts = {};
+    if (!(this instanceof SocketIO)) return new SocketIO(opts);
+    
     this.proxy = function (args) {
-        // whitelist maps names to host:port combos
-        var whitelist = args.whitelist || {};
+        // Nodes maps names to host:port combos.
+        // It's a sort of whitelist in addition to a naming abstraction.
+        var nodes = args.nodes || {};
         
         var server = args.server;
         var connections = {};
         var objects = {}; // client session id => wrapped object
         
-        var socketIO = io.listen(server, {
-            onClientConnect : function (client) {
-                connections[client.sessionId] = {};
-                objects[client.sessionId] = {
-                    methods : function () {
-                        
-                    }
-                };
-                
-                client.send(JSON.stringify({
-                    emit : 'available',
-                    addrs : values(whitelist),
-                }));
-            },
-            onClientMessage : function (msgString, client) {
-                var msg = JSON.parse(msgString);
-                var conns = connections[client.sessionId];
-                
-                if (msg.action == 'connect') {
-                    if (msg.addr in values(whitelist)) {
-                        var host = msg.addr.split(/:/)[0];
-                        var port = parseInt(msg.addr.split(/:/)[1], 10);
-                        
-                        DNode(obj).connect(host, port, function (dnode) {
-                            conns.push(dnode);
-                            client.write(JSON.stringify({
-                                emit : 'connected',
-                                addr : addr,
-                            }));
-                        });
-                    }
-                    else {
+        var socketIO = io.listen(server, opts);
+        socketIO.addListener('clientConnect', function (client) {
+            connections[client.sessionId] = {};
+            objects[client.sessionId] = {
+                methods : function () {
+                    
+                }
+            };
+            
+            client.send(JSON.stringify({
+                emit : 'available',
+                addrs : values(whitelist),
+            }));
+        });
+        
+        socketIO.addListener('clientMessage', function (msgString, client) {
+            var msg = JSON.parse(msgString);
+            var conns = connections[client.sessionId];
+            
+            if (msg.action == 'connect') {
+                if (msg.addr in values(whitelist)) {
+                    var host = msg.addr.split(/:/)[0];
+                    var port = parseInt(msg.addr.split(/:/)[1], 10);
+                    
+                    DNode(obj).connect(host, port, function (dnode) {
+                        conns.push(dnode);
                         client.write(JSON.stringify({
-                            emit : 'error',
+                            emit : 'connected',
                             addr : addr,
-                            error : addr + ' is not in the whitelist',
                         }));
-                    }
+                    });
                 }
                 else {
-                    var conn = conns[msg.addr];
-                    var method = msg.method;
-                    // todo : stuff
+                    client.write(JSON.stringify({
+                        emit : 'error',
+                        addr : addr,
+                        error : addr + ' is not in the whitelist',
+                    }));
                 }
-            },
-            onClientDisconnect : function (msg, client) {
-            },
+            }
+            else {
+                var conn = conns[msg.addr];
+                var method = msg.method;
+                // todo : stuff
+            }
+        });
+        
+        socketIO.addListener('clientDisconnect', function (client) {
+            // todo: send .end() to client's connections
         });
     };
+};
+
+// So DNode.socketIO().proxy and DNode.socketIO.proxy do the same thing:
+DNode.SocketIO.proxy = function () {
+    var socketIO = DNode.SocketIO();
+    return socketIO.proxy.apply(socketIO,[].concat.apply([],arguments));
 };
 
