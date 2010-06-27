@@ -1,2 +1,40 @@
 <script type="text/javascript" src="/js/socket.io.js"></script>
-pow!
+<script type="text/javascript">
+    var DNode_conn = null;
+    function DNode (obj) {
+        if (!(this instanceof DNode)) return new DNode(obj);
+        if (obj === undefined) obj = {};
+        
+        this.connect = function (server, opts) {
+            var transports = 'websocket htmlfile xhr-multipart xhr-polling'
+                .split(/\s+/);
+            if (DNode_conn === null) {
+                DNode_conn = new io.Socket(window.location.hostname, {
+                    rememberTransport : opts.rememberTransport || false,
+                    transports : opts.transports || transports,
+                    port : opts.port || window.location.port,
+                });
+                DNode_conn.addEvent('message', function (msg) {
+                   console.log(msg);
+                });
+                DNode_conn.connect();
+            }
+        };
+    }
+    
+    DNode.connect = function () {
+        var args = [].concat.apply([], arguments);
+        var dnode = new DNode();
+        dnode.connect.apply(dnode,args);
+    };
+</script>
+
+<script type="text/javascript">
+    DNode.connect('times', function (dnode,times) {
+        times.timesTen(10, function (n) {
+            document.getElementById("result").innerHTML = String(n);
+        });
+    });
+</script>
+
+timesTen(10) == <span id="result">?</span>
