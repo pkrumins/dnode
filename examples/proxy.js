@@ -21,6 +21,7 @@ catch (err) {
     process.exit();
 }
 js['dnode-client.js'] = fs.readFileSync(__dirname + '/../dnode-client.js');
+js['events.js'] = fs.readFileSync(__dirname + '/../events.js');
 
 var httpServer = http.createServer(function (req,res) {
     var m = req.url.match(/^\/js\/(.+)/);
