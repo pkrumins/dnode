@@ -1,7 +1,5 @@
 <script type="text/javascript" src="/js/socket.io.js"></script>
-<script type="text/javascript" src="/js/events.js"></script>
 <script type="text/javascript">
-    DNode.prototype = new EventEmitter;
     function DNode (obj) {
         if (!(this instanceof DNode)) return new DNode(obj);
         var dnode = this;
@@ -46,7 +44,6 @@
             }
             
             sock.addEvent('connect', function () {
-                dnode.emit('connect');
                 request('methods', [], function (methods) {
                     methods.forEach(function (method) {
                         remote[method] = function () {
@@ -62,10 +59,7 @@
             
             sock.addEvent('message', function (strMsg) {
                 var msg = JSON.parse(strMsg);
-                if ('emit' in msg) {
-                    conn.emit(msg.emit, msg);
-                }
-                else if ('result' in msg) {
+                if ('result' in msg) {
                     handlers[msg.id].call(remote,msg.result);
                 }
                 else if ('method' in msg) {
