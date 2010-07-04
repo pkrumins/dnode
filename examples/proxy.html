@@ -38,15 +38,15 @@
             var remote = {};
             function request(method, args, f) {
                 handlers[reqId] = f;
-                sock.send({
+                sock.send(JSON.stringify({
                     method : method,
                     arguments : args,
                     id : reqId ++,
-                });
+                }));
             }
             
-            sock.addEvent('connected', function () {
-                dnode.emit('connected');
+            sock.addEvent('connect', function () {
+                dnode.emit('connect');
                 request('methods', [], function (methods) {
                     methods.forEach(function (method) {
                         remote[method] = function () {
@@ -72,19 +72,19 @@
                     var f = obj[msg.method];
                     if (f.asynchronous) {
                         var args = msg.arguments + [ function (res) {
-                            sock.send({
+                            sock.send(JSON.stringify({
                                 id : msg.id,
                                 result : res,
-                            });
+                            }));
                         } ];
                         f.apply(obj,args);
                     }
                     else {
                         var res = f.apply(obj,msg.arguments);
-                        sock.send({
+                        sock.send(JSON.stringify({
                             id : msg.id, 
                             result : res,
-                        });
+                        }));
                     }
                 }
             });
@@ -99,8 +99,8 @@
 </script>
 
 <script type="text/javascript">
-    DNode({}).connect(function (dnode,times) {
-        times.timesTen(10, function (n) {
+    DNode({}).connect(function (dnode,remote) {
+        remote.timesTen(10, function (n) {
             document.getElementById("result").innerHTML = String(n);
         });
     });
