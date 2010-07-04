@@ -28,8 +28,16 @@ httpServer.listen(6061);
 // listen on 6060 and socket.io
 DNode(function (remote) {
     this.timesTen = function (n) { return n * 10 };
-    this.whoAmI = DNode.async(function (f) { remote.name(f) });
-}).listen(6060).listen({
+    this.whoAmI = DNode.async(function (f) {
+        remote.name(function (name) {
+            f(name
+                .replace(/Mr\.?/,'Mister')
+                .replace(/Ms\.?/,'Miss')
+                .replace(/Mrs\.?/,'Misses')
+            );
+        })
+    });
+}).listen({
     protocol : 'socket.io',
     server : httpServer,
     transports : 'websocket xhr-multipart xhr-polling htmlfile'.split(/\s+/),

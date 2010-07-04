@@ -3,6 +3,7 @@ function DNode (obj) {
     if (!(this instanceof DNode)) return new DNode(obj);
     var dnode = this;
     if (obj === undefined) obj = {};
+    
     if (!('methods' in obj)) {
         obj.methods = function () {
             return Object.keys(obj);
