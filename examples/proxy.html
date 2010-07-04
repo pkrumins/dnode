@@ -1,72 +1,105 @@
 <script type="text/javascript" src="/js/socket.io.js"></script>
 <script type="text/javascript" src="/js/events.js"></script>
 <script type="text/javascript">
-    Connection.prototype = new EventEmitter;
-    function Connection(opts) {
-        if (!(this instanceof Connection)) return new Connection(opts);
-        if (opts === undefined) opts = {};
-        var conn = this;
-        
-        var sock = new io.Socket(window.location.hostname, {
-            rememberTransport : opts.rememberTransport || false,
-            transports : opts.transports
-                || 'websocket htmlfile xhr-multipart xhr-polling'.split(/\s+/),
-            port : opts.port || window.location.port,
-        });
-        
-        sock.addEvent('message', function (strMsg) {
-            var msg = JSON.parse(strMsg);
-            if ('emit' in msg) {
-                conn.emit(msg.emit, msg);
-            }
-        });
-        
-        sock.addEvent('connected', function () {
-            conn.emit('connected');
-        });
-        
-        sock.connect();
-        
-        this.write = function (msg) { sock.send(msg) };
-    }
-    
     DNode.prototype = new EventEmitter;
-    function DNode (obj, conn) {
-        if (!(this instanceof DNode)) return new DNode(obj, conn);
+    function DNode (obj) {
+        if (!(this instanceof DNode)) return new DNode(obj);
         var dnode = this;
         if (obj === undefined) obj = {};
+        if (!('methods' in obj)) {
+            obj.methods = function () {
+                return Object.keys(obj);
+            };
+        }
         
-        this.connect = function (node, f) {
-            conn.addListener('connected', function ev (msg) {
-                dnode.emit('connected', { node : node });
-                request('methods', node, [], function (methods) {
-                    var remote = {};
+        function firstType (args, type) {
+            return [].concat.apply([],args).filter(function (x) {
+                return typeof(x) == type
+            })[0];
+        }
+        
+        this.connect = function () {
+            var kwargs = firstType(arguments,'object') || {};
+            var host = firstType(arguments,'string')
+                || kwargs.host || window.location.hostname;
+            var port = firstType(arguments,'string')
+                || kwargs.port || window.location.port;
+            var block = firstType(arguments,'function') || kwargs.block;
+            
+            var sock = new io.Socket(host, {
+                rememberTransport : kwargs.rememberTransport || false,
+                transports : kwargs.transports ||
+                    'websocket htmlfile xhr-multipart xhr-polling'.split(/\s+/),
+                port : port,
+            });
+            
+            var reqId = 0;
+            var handlers = {};
+            var remote = {};
+            function request(method, args, f) {
+                handlers[reqId] = f;
+                sock.send({
+                    method : method,
+                    arguments : args,
+                    id : reqId ++,
+                });
+            }
+            
+            sock.addEvent('connected', function () {
+                dnode.emit('connected');
+                request('methods', [], function (methods) {
                     methods.forEach(function (method) {
                         remote[method] = function () {
                             var args = [].concat.apply([],arguments);
-                            var callback = args.slice(-1)[0];
-                            request(method, node, args.slice(0,-1), callback);
+                            var argv = args.slice(0,-1);
+                            var f = args.slice(-1)[0];
+                            request(method,argv,f);
                         };
                     });
-                    f(dnode, remote);
+                    block.call(remote, dnode, remote);
                 });
             });
             
-            conn.write(JSON.stringify({
-                action : 'connect',
-                node : node,
-            }));
+            sock.addEvent('message', function (strMsg) {
+                var msg = JSON.parse(strMsg);
+                if ('emit' in msg) {
+                    conn.emit(msg.emit, msg);
+                }
+                else if ('result' in msg) {
+                    handlers[msg.id].call(remote,msg.result);
+                }
+                else if ('method' in msg) {
+                    var f = obj[msg.method];
+                    if (f.asynchronous) {
+                        var args = msg.arguments + [ function (res) {
+                            sock.send({
+                                id : msg.id,
+                                result : res,
+                            });
+                        } ];
+                        f.apply(obj,args);
+                    }
+                    else {
+                        var res = f.apply(obj,msg.arguments);
+                        sock.send({
+                            id : msg.id, 
+                            result : res,
+                        });
+                    }
+                }
+            });
+            
+            sock.connect();
         };
-        
-        function request(method, node, args, callback) {
-            // ...
-        }
+    }
+    
+    DNode.async = function (f) {
+        f.asynchronous = true;
     }
 </script>
 
 <script type="text/javascript">
-    var conn = new Connection;
-    DNode({},conn).connect('times', function (dnode,times) {
+    DNode({}).connect(function (dnode,times) {
         times.timesTen(10, function (n) {
             document.getElementById("result").innerHTML = String(n);
         });
