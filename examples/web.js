@@ -4,7 +4,7 @@ var sys = require('sys');
 var fs = require('fs');
 var http = require('http');
 
-var html = fs.readFileSync(__dirname + '/proxy.html');
+var html = fs.readFileSync(__dirname + '/web.html');
 var js = {
     'dnode-client.js' : fs.readFileSync(__dirname + '/../dnode-client.js'),
     'events.js' : fs.readFileSync(__dirname + '/../events.js'),
