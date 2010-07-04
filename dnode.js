@@ -97,10 +97,10 @@ function DNodeConn (args) {
                 
                 var cmd = JSON.parse(line);
                 if ('method' in cmd) {
-                    conn.emit('request', cmd);
+                    handleRequest(cmd);
                 }
                 else if ('result' in cmd) {
-                    conn.emit('response', cmd);
+                    handleResult(cmd);
                 }
                 n = buf.toString().indexOf('\n', n + 1);
             }
@@ -109,10 +109,10 @@ function DNodeConn (args) {
             // SocketIO wrapper sends strings
             var cmd = JSON.parse(buf);
             if ('method' in cmd) {
-                conn.emit('request', cmd);
+                handleRequest(cmd);
             }
             else if ('result' in cmd) {
-                conn.emit('response', cmd);
+                handleResult(cmd);
             }
         }
     });
@@ -151,7 +151,7 @@ function DNodeConn (args) {
         sendID ++;
     };
     
-    this.addListener('request', function (req) {
+    function handleRequest(req) {
         var f = instance[req.method];
         if (req.method == 'methods' && f == undefined) {
             var methods = ['methods'];
@@ -176,11 +176,13 @@ function DNodeConn (args) {
             var res = f.apply(instance, req.arguments);
             respond(res);
         }
-    });
+        conn.emit('request', req);
+    }
     
-    this.addListener('response', function (res) {
+    function handleResult(res) {
         handlers[res.id].call(remote, res.result);
-    });
+        conn.emit('result', res);
+    }
 };
 
 function DNodeSocketIO (params) {
