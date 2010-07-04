@@ -2,6 +2,7 @@ var net = require('net');
 var sys = require('sys');
 var BufferList = require('bufferlist').BufferList;
 var EventEmitter = require('events').EventEmitter;
+var io = require('socket.io');
 
 exports.DNode = DNode;
 function DNode (wrapper) {
@@ -38,16 +39,49 @@ function DNode (wrapper) {
     
     this.listen = function () {
         var kwargs = firstType(arguments,'object') || {};
-        var host = firstType(arguments,'string') || kwargs.host;
-        var port = firstType(arguments,'number') || kwargs.port;
-        var block = firstType(arguments,'function') || kwargs.block;
+        var proto = kwargs.protocol || 'socket';
         
-        net.createServer(function (stream) {
-            var conn = new DNodeConn({
-                stream : stream,
-                instance : f(),
+        if (proto == 'socket') {
+            var host = firstType(arguments,'string') || kwargs.host;
+            var port = firstType(arguments,'number') || kwargs.port;
+            
+            net.createServer(function (stream) {
+                var conn = new DNodeConn({
+                    stream : stream,
+                    instance : f(),
+                });
+            }).listen(port, host);
+        }
+        else if (proto == 'socket.io') {
+            // http server to proxy socketIO connections with
+            var server = kwargs.server;
+            delete kwargs.server;
+            delete kwargs.protocol;
+            var socketIO = io.listen(server, kwargs);
+            
+            var sessions = {};
+            
+            socketIO.addListener('clientConnect', function (client) {
+                client.write(JSON.stringify({
+                    method : 'methods',
+                    arguments : [],
+                    id : -1,
+                }));
             });
-        }).listen(port, host);
+            
+            socketIO.addListener('clientMessage', function (msgString,client) {
+                var msg = JSON.parse(msgString);
+                if (!(client.sessionId in sessions)) {
+                    sessions[session.id] =
+                        new DNode.SocketIO.Session(client, msg.result);
+                }
+                sessions[session.id].handleClient(msg);
+            });
+        }
+        else {
+            throw 'Unsupported protocol: ' + proto;
+        }
+        return this;
     };
 }
 
@@ -158,162 +192,106 @@ function async (f) {
     return f;
 };
 
-var io = require('socket.io');
-DNode.SocketIO = function SocketIO (opts) {
-    // map names to hashes with host and port keys
-    // part whitelist, part naming abstraction
-    var nodes = opts.nodes || {};
+DNode.SocketIO = {};
+DNode.SocketIO.Session = function Session (client, methods) {
+    this.id = client.sessionId;
     
-    if (opts === undefined) opts = {};
-    if (!(this instanceof SocketIO)) return new SocketIO(opts);
+    var reqId = 0;
+    var clientHandlers = {};
+    var objects = {}; // map nodes to client wrapped objects
+    var remotes = {}; // map nodes to dnode remote objects
+    var dnodes = {}; // map nodes to dnode connections
     
-    function Session (client, methods) {
-        this.id = client.sessionId;
-        
-        var reqId = 0;
-        var clientHandlers = {};
-        var objects = {}; // map nodes to client wrapped objects
-        var remotes = {}; // map nodes to dnode remote objects
-        var dnodes = {}; // map nodes to dnode connections
-        
-        function error (msg) {
-            client.write(JSON.stringify({
-                emit : 'error', arguments : [msg],
-            }));
-        }
-        
-        function requireKeys (msg, keys) {
-            var missing = keys.filter(function (key) {
-                return !(key in msg)
-            });
-            if (missing.length > 0) {
-                error('Missing keys ' + sys.inspect(missing)
-                    + ' in request: ' + sys.inspect(msg));
-                return false;
-            }
-            else {
-                return true;
-            }
-        }
-        
-        // handle messages from the client
-        this.handleClient = function (msg) {
-            if ('result' in msg) {
-                // response from the client
-                if (requireKeys(msg, ['id','result'])) {
-                    var f = handlers[msg.id];
-                    f.call(objects[f.node], msg.result);
-                }
-            }
-            else if ('method' in msg) {
-                // request from the client
-                if (requireKeys(msg, ['node','method','arguments'])) {
-                    var remote = remotes[msg.node];
-                    remote[msg.method].apply(remote, msg.arguments);
-                }
-            }
-            else if ('connect' in msg) {
-                if (requireKeys(msg, ['node'])) {
-                    this.connect(msg.node);
-                }
-            }
-            else if ('disconnect' in msg) {
-                if (requireKeys(msg, ['node'])) {
-                    this.disconnect(msg.node);
-                }
-            }
-        };
-        
-        this.connect = function (node) {
-            if (!(node in nodes)) {
-                error('Node ' + sys.inspect(node) + ' is not available');
-            }
-            else {
-                // messages from each node come in through the object interface
-                var obj = {};
-                methods.forEach(function (method) {
-                    obj[method] = DNode.async(function () {
-                        var args = [].concat.apply([],arguments);
-                        var argv = args.slice(0,-1);
-                        var f = args.slice(-1)[0];
-                        
-                        f.node = node;
-                        handlers[reqId] = f;
-                        client.write(JSON.stringify({
-                            method : method,
-                            arguments : argv,
-                            node : node,
-                            id : reqId ++,
-                        }));
-                        
-                    });
-                });
-                objects[node] = obj;
-                
-                DNode(obj).connect(nodes[node], function (dnode, remote) {
-                    remotes[node] = remote;
-                    dnodes[node] = dnode;
-                });
-            }
-        };
-        
-        this.disconnect = function (node) {
-            if (node === undefined) {
-                // disconnect all connected nodes
-                Object.keys(dnodes).forEach(function (node) {
-                    dnodes[node].end();
-                });
-            }
-            else {
-                dnodes[node].end();
-            }
-        };
+    function error (msg) {
+        client.write(JSON.stringify({
+            emit : 'error', arguments : [msg],
+        }));
     }
     
-    this.proxy = function (args) {
-        
-        // http server to proxy socketIO connections with
-        var server = args.server;
-        var socketIO = io.listen(server, opts);
-        
-        var sessions = {};
-        
-        socketIO.addListener('clientConnect', function (client) {
-            client.write(JSON.stringify({
-                emit : 'available',
-                addrs : Object.keys(nodes),
-            }));
-            
-            client.write(JSON.stringify({
-                method : 'methods',
-                arguments : [],
-                id : -1,
-            }));
+    function requireKeys (msg, keys) {
+        var missing = keys.filter(function (key) {
+            return !(key in msg)
         });
-        
-        socketIO.addListener('clientMessage', function (msgString,client) {
-            var msg = JSON.parse(msgString);
-            
-            if (msg.id == -1) { // methods reply
-                var session = new Session(client, msg.result);
-                sessions[session.id] = session;
+        if (missing.length > 0) {
+            error('Missing keys ' + sys.inspect(missing)
+                + ' in request: ' + sys.inspect(msg));
+            return false;
+        }
+        else {
+            return true;
+        }
+    }
+    
+    // handle messages from the client
+    this.handleClient = function (msg) {
+        if ('result' in msg) {
+            // response from the client
+            if (requireKeys(msg, ['id','result'])) {
+                var f = handlers[msg.id];
+                f.call(objects[f.node], msg.result);
             }
-            else {
-                var session = sessions[client.sessionId];
-                session.handleClient(msg);
+        }
+        else if ('method' in msg) {
+            // request from the client
+            if (requireKeys(msg, ['node','method','arguments'])) {
+                var remote = remotes[msg.node];
+                remote[msg.method].apply(remote, msg.arguments);
             }
-        });
-        
-        socketIO.addListener('clientDisconnect', function (client) {
-            var session = sessions[client.sessionId];
-            session.disconnect();
-        });
+        }
+        else if ('connect' in msg) {
+            if (requireKeys(msg, ['node'])) {
+                this.connect(msg.node);
+            }
+        }
+        else if ('disconnect' in msg) {
+            if (requireKeys(msg, ['node'])) {
+                this.disconnect(msg.node);
+            }
+        }
     };
-};
-
-// So DNode.socketIO().proxy and DNode.socketIO.proxy do the same thing:
-DNode.SocketIO.proxy = function () {
-    var socketIO = DNode.SocketIO();
-    return socketIO.proxy.apply(socketIO,[].concat.apply([],arguments));
-};
-
+    
+    this.connect = function (node) {
+        if (!(node in nodes)) {
+            error('Node ' + sys.inspect(node) + ' is not available');
+        }
+        else {
+            // messages from each node come in through the object interface
+            var obj = {};
+            methods.forEach(function (method) {
+                obj[method] = DNode.async(function () {
+                    var args = [].concat.apply([],arguments);
+                    var argv = args.slice(0,-1);
+                    var f = args.slice(-1)[0];
+                    
+                    f.node = node;
+                    handlers[reqId] = f;
+                    client.write(JSON.stringify({
+                        method : method,
+                        arguments : argv,
+                        node : node,
+                        id : reqId ++,
+                    }));
+                    
+                });
+            });
+            objects[node] = obj;
+            
+            DNode(obj).connect(nodes[node], function (dnode, remote) {
+                remotes[node] = remote;
+                dnodes[node] = dnode;
+            });
+        }
+    };
+    
+    this.disconnect = function (node) {
+        if (node === undefined) {
+            // disconnect all connected nodes
+            Object.keys(dnodes).forEach(function (node) {
+                dnodes[node].end();
+            });
+        }
+        else {
+            dnodes[node].end();
+        }
+    };
+}
