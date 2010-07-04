@@ -35,15 +35,20 @@ function DNode (wrapper) {
     this.listen = function () {
         var kwargs = firstType(arguments,'object') || {};
         var proto = kwargs.protocol || 'socket';
+        var block = firstType(arguments,'function')
+            || kwargs.block || function () {};
         
         if (proto == 'socket') {
             var host = firstType(arguments,'string') || kwargs.host;
             var port = firstType(arguments,'number') || kwargs.port;
             
             net.createServer(function (stream) {
-                new DNodeConn({
+                var conn = new DNodeConn({
                     stream : stream,
                     wrapper : wrapper,
+                });
+                conn.addListener('remote', function (remote) {
+                    block.call(remote, conn, remote);
                 });
             }).listen(port, host);
         }
@@ -56,6 +61,7 @@ function DNode (wrapper) {
             DNodeSocketIO({
                 socketIO : socketIO,
                 wrapper : wrapper,
+                block : block,
             });
         }
         else {
@@ -202,9 +208,12 @@ function DNodeSocketIO (params) {
     sock.addListener('clientConnect', function (client) {
         var id = client.sessionId;
         streams[id] = new StreamIO(client);
-        new DNodeConn({
+        var conn = new DNodeConn({
             wrapper : params.wrapper,
             stream : streams[id],
+        });
+        conn.addListener('remote', function (remote) {
+            params.block.call(remote, conn, remote);
         });
         streams[id].emit('connect');
     });
