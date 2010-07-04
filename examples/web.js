@@ -7,7 +7,6 @@ var http = require('http');
 var html = fs.readFileSync(__dirname + '/web.html');
 var js = {
     'dnode-client.js' : fs.readFileSync(__dirname + '/../dnode-client.js'),
-    'events.js' : fs.readFileSync(__dirname + '/../events.js'),
     // Symlink socket.io.js to examples/ first
     'socket.io.js' : fs.readFileSync(__dirname + '/socket.io.js'),
 };
@@ -26,10 +25,10 @@ var httpServer = http.createServer(function (req,res) {
 httpServer.listen(6061);
 
 // listen on 6060 and socket.io
-DNode(function (remote) {
+DNode(function (client) {
     this.timesTen = function (n) { return n * 10 };
     this.whoAmI = DNode.async(function (f) {
-        remote.name(function (name) {
+        client.name(function (name) {
             f(name
                 .replace(/Mr\.?/,'Mister')
                 .replace(/Ms\.?/,'Miss')
