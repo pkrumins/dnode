@@ -1,11 +1,17 @@
 <script type="text/javascript" src="/js/socket.io.js"></script>
 <script type="text/javascript" src="/js/dnode-client.js"></script>
 <script type="text/javascript">
-    DNode({}).connect(function (dnode,remote) {
+    DNode({
+        name : function () { return 'Mr. Spock' },
+    }).connect(function (dnode,remote) {
         remote.timesTen(10, function (n) {
             document.getElementById("result").innerHTML = String(n);
+        });
+        remote.whoAmI(function (name) {
+            document.getElementById("name").innerHTML = name;
         });
     });
 </script>
 
-timesTen(10) == <span id="result">?</span>
+<p>timesTen(10) == <span id="result">?</span></p>
+<p>My name is <span id="name">?</span>.</p>

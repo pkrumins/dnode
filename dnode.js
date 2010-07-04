@@ -8,14 +8,8 @@ var io = require('socket.io');
 exports.DNode = DNode;
 function DNode (wrapper) {
     if (!(this instanceof DNode)) return new DNode(wrapper);
-    if (wrapper == undefined) wrapper = {};
+    if (wrapper === undefined) wrapper = {};
     var dnode = this;
-    
-    // share an object or a function that returns an object
-    var f = wrapper instanceof Function
-        ? wrapper
-        : function () { return wrapper }
-    ;
     
     function firstType (args, type) {
         return [].concat.apply([],args).filter(function (x) {
@@ -31,7 +25,7 @@ function DNode (wrapper) {
         
         var conn = new DNodeConn({
             stream : net.createConnection(port, host),
-            instance : f(),
+            wrapper : wrapper,
         });
         conn.addListener('remote', function (remote) {
             block.call(remote, conn, remote);
@@ -49,7 +43,7 @@ function DNode (wrapper) {
             net.createServer(function (stream) {
                 new DNodeConn({
                     stream : stream,
-                    instance : f(),
+                    wrapper : wrapper,
                 });
             }).listen(port, host);
         }
@@ -61,7 +55,7 @@ function DNode (wrapper) {
             var socketIO = io.listen(server, kwargs);
             DNodeSocketIO({
                 socketIO : socketIO,
-                wrapped : f,
+                wrapper : wrapper,
             });
         }
         else {
@@ -82,8 +76,18 @@ function DNodeConn (args) {
     var conn = this;
     
     var sock = args.stream;
-    var instance = args.instance;
-    var remote;
+    var remote = {};
+    
+    // share an object or a function that builds an object
+    var instance = typeof(args.wrapper) == 'function'
+        ? new args.wrapper(remote)
+        : args.wrapper
+    ;
+    if (!('methods' in instance)) {
+        instance.methods = function () {
+            return Object.keys(instance);
+        }
+    }
     
     var bufferList = new BufferList;
     sock.addListener('data', function (buf) {
@@ -121,7 +125,6 @@ function DNodeConn (args) {
         conn.request({
             method : 'methods',
             block : function (methods) {
-                remote = {};
                 methods.forEach(function (method) {
                     remote[method] = function () {
                         var argv = [].concat.apply([],arguments);
@@ -200,7 +203,7 @@ function DNodeSocketIO (params) {
         var id = client.sessionId;
         streams[id] = new StreamIO(client);
         new DNodeConn({
-            instance : params.wrapped(),
+            wrapper : params.wrapper,
             stream : streams[id],
         });
         streams[id].emit('connect');
