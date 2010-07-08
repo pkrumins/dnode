@@ -53,7 +53,7 @@ function DNode (obj) {
                         request(method,argv,f);
                     };
                 });
-                block.call(remote, dnode, remote);
+                block.call(remote, remote, dnode);
             });
         });
         

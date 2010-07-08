@@ -10,7 +10,7 @@ var server = DNode({
 }).listen(6060);
 
 // client-side:
-DNode.connect(6060, function (dnode, remote) {
+DNode.connect(6060, function (remote) {
     // note: this == remote
     remote.moo(function (x) {
         sys.log(x);

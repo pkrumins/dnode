@@ -20,7 +20,7 @@ Client and Server
     }).listen(6060);
     
     // client-side:
-    DNode.connect(6060, function (dnode,remote) {
+    DNode.connect(6060, function (remote) {
         remote.timesTen(5, function (res) {
             sys.puts(res); // 50, computation executed on the server
         });
@@ -67,7 +67,7 @@ client handle as the first argument.
     // client-side:
     DNode({
         x : function () { return 20 }
-    }).connect(6060, function (dnode,remote) {
+    }).connect(6060, function (remote) {
         remote.timesX(3, function (res) {
             sys.puts(res); // 20 * 3 == 60
         });
@@ -91,7 +91,7 @@ into the examples/ directory, where these files reside.
     <script type="text/javascript">
         DNode({
             name : function () { return 'Mr. Spock' },
-        }).connect(function (dnode,remote) {
+        }).connect(function (remote) {
             remote.timesTen(10, function (n) {
                 document.getElementById("result").innerHTML = String(n);
             });

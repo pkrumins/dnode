@@ -28,7 +28,7 @@ function DNode (wrapper) {
             wrapper : wrapper,
         });
         conn.addListener('remote', function (remote) {
-            block.call(remote, conn, remote);
+            block.call(remote, remote, conn);
         });
     };
     
@@ -48,7 +48,7 @@ function DNode (wrapper) {
                     wrapper : wrapper,
                 });
                 conn.addListener('remote', function (remote) {
-                    block.call(remote, conn, remote);
+                    block.call(remote, remote, conn);
                 });
             }).listen(port, host);
         }

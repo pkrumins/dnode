@@ -14,7 +14,7 @@ DNode(function (client) {
 // client-side:
 DNode({
     x : function () { return 20 }
-}).connect(6060, function (dnode,remote) {
+}).connect(6060, function (remote) {
     remote.timesX(3, function (res) {
         sys.puts(res); // 20 * 3 == 60
     });

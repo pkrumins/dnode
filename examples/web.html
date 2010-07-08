@@ -3,7 +3,7 @@
 <script type="text/javascript">
     DNode({
         name : function () { return 'Mr. Spock' },
-    }).connect(function (dnode,remote) {
+    }).connect(function (remote) {
         remote.timesTen(10, function (n) {
             document.getElementById("result").innerHTML = String(n);
         });
