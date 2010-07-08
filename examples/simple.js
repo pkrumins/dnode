@@ -12,12 +12,12 @@ var server = DNode({
 // client-side:
 DNode.connect(6060, function (dnode, remote) {
     // note: this == remote
-    this.moo(function (x) {
+    remote.moo(function (x) {
         sys.log(x);
     });
-    this.timesTen(5, function (m) {
+    remote.timesTen(5, function (m) {
         sys.puts(m); // 50, computation executed on the server
-        this.aTimesTen(m, function (n) {
+        remote.aTimesTen(m, function (n) {
             sys.puts(n); // 50 * 10 == 500
         });
     });
