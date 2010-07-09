@@ -155,28 +155,43 @@ the same DNode instance by chaining .listen() calls. This is useful when
 socket.io clients need to access the same service as regular node.js network
 sockets.
 
+Conventions
+===========
+
+For the most part, when a method supplies a single return value, the callback
+function should be the method's last argument, like blocks in ruby.
+
 Protocol
 ========
 
-DNode uses line-buffered JSON strings to pass messages between the client and
-server. Either side of the connection may request a method from the opposite
-side. Once the result has been computed, the requested side sends back to the
-result with the id that it was passed in the request.
+DNode uses newline-terminated JSON messages. Each side of the connection may
+request that a method be invoked on the other side.
 
-### request
-* id :: Integer
-* method :: String
+### Message Data Fields
+
+All messages have this format:
+* method :: String or Integer
 * arguments :: Array
+* callbacks :: Object
 
-### result
-* id :: Int
-* result :: Any JSON Type
+When the method field is a string, it refers to a named method at the remote.
+When the method field is an integer, it refers to an anonymous function
+declared in the callbacks field of a previous request.
 
-Each side of the connection must provide the "methods" method which returns a
-list of the available methods.
+The arguments field contains the data to supply the remote method or callback.
+The callbacks field maps an argument index to an integral callback ID.
+The contents of the arguments array at a callback index is not used, so it may
+be any valid JSON.
+
+Each side of the connection must respond to the "methods" method, which supplies
+a list of available named methods to the callback. The output of "methods" may
+change over the course of the connection so the remote may request it multiple
+times. An authentication protocol can exploit this behavior by providing a
+different set of available methods after a client has authenticated, for
+instance.
 
 Todo
 ====
 
-* Anonymous function arguments in remote calls.
-* Event emitters for errors and other events.
+* Event emitters for errors and other events
+* Method chains for friendlier sequential method calls
