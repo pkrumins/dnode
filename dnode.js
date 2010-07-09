@@ -11,17 +11,21 @@ function DNode (wrapper) {
     if (wrapper === undefined) wrapper = {};
     var dnode = this;
     
-    function firstType (args, type) {
-        return [].concat.apply([],args).filter(function (x) {
-            return typeof(x) == type
-        })[0];
+    function firstTypes (args) {
+        var types = {};
+        [].concat.apply([],args).forEach(function (arg) {
+            var t = typeof(arg);
+            if (!(t in types)) types[t] = arg;
+        });
+        return types;
     }
     
     this.connect = function () {
-        var kwargs = firstType(arguments,'object') || {};
-        var host = firstType(arguments,'string') || kwargs.host;
-        var port = firstType(arguments,'number') || kwargs.port;
-        var block = firstType(arguments,'function') || kwargs.block;
+        var types = firstTypes(arguments) || {};
+        var kwargs = types.object || {};
+        var host = types.string || kwargs.host;
+        var port = types.number || kwargs.port;
+        var block = types['function'] || kwargs.block;
         
         var conn = new DNodeConn({
             stream : net.createConnection(port, host),
@@ -33,14 +37,15 @@ function DNode (wrapper) {
     };
     
     this.listen = function () {
-        var kwargs = firstType(arguments,'object') || {};
+        var types = firstTypes(arguments) || {};
+        var kwargs = types.object || {};
         var proto = kwargs.protocol || 'socket';
-        var block = firstType(arguments,'function')
+        var block = types['function']
             || kwargs.block || function () {};
         
         if (proto == 'socket') {
-            var host = firstType(arguments,'string') || kwargs.host;
-            var port = firstType(arguments,'number') || kwargs.port;
+            var host = types.string || kwargs.host;
+            var port = types.number || kwargs.port;
             
             net.createServer(function (stream) {
                 var conn = new DNodeConn({
