@@ -17,6 +17,17 @@ The return values of hosted methods are ignored. All return values are provided
 through callbacks. However, DNode.sync() transforms a function that returns a
 value into a function that calls its last argument with its return value.
 
+Installation
+============
+
+Using npm:
+    npm install dnode
+
+Or check out the repository and link your development copy:
+    git clone http://github.com/substack/dnode.git
+    cd dnode
+    npm link .
+
 Examples
 ========
 
