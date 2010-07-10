@@ -11,7 +11,6 @@ var server = DNode({
 
 // client-side:
 DNode.connect(6060, function (remote) {
-    // note: this == remote
     remote.moo(function (x) {
         sys.log(x);
     });
