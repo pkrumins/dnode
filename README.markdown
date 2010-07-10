@@ -6,16 +6,14 @@ invocation across the network. Transports for network sockets and
 websocket-style socket.io connections are available.
 
 A DNode server listens for incoming connections and offers up an object to
-clients that connect. Clients can call any of the server's methods and clients
-can offer up their own objects for the server to call. When a client calls a
-remote method on a server, all functions in the arguments array are
-automatically transformed such that when the server calls the function supplied
-by the client, the function executes on the client with the arguments provided
-by the server.
+clients that connect. Clients can call any of the methods that the server hosts
+and clients can offer their own methods for the server to call.
 
-The return values of hosted methods are ignored. All return values are provided
-through callbacks. However, DNode.sync() transforms a function that returns a
-value into a function that calls its last argument with its return value.
+DNode uses continuation-passing-style to make return values available.
+In order to make return values available, the server calls a function supplied
+to it by the client as an argument. These functions execute on the client side
+with the arguments provided by the server. Functions may be nested arbitrarily
+deeply in a method's arguments and can be called multiple times by the server.
 
 Installation
 ============
@@ -51,6 +49,9 @@ Client and Server
 
 Synchronous Function Example
 -----------------------------
+
+The DNode.sync() function adds a callback as the last argument to a function for
+functions that return explicitly. This callback is called with the return value.
 
     // server-side:
     var DNode = require('dnode').DNode;
