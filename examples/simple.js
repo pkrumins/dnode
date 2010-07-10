@@ -4,9 +4,9 @@ var sys = require('sys');
 
 // server-side:
 var server = DNode({
-    timesTen : function (n) { return n * 10 },
-    aTimesTen : DNode.async(function (n,f) { f(n * 10) }),
-    moo : DNode.async(function (f) { f(100) }),
+    timesTen : DNode.sync(function (n) { return n * 10 }),
+    aTimesTen : function (n,f) { f(n * 10) },
+    moo : function (f) { f(100) },
 }).listen(6060);
 
 // client-side:
