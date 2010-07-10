@@ -1,0 +1,17 @@
+{
+    "name": "dnode",
+    "version": "0.0.1",
+    "descrption": "Asynchronous, bidirectional remote method invocation",
+    "author": "James Halliday",
+    "directories": { "lib": "./lib" },
+    "main": "./lib/dnode.js",
+    "repository": {
+        "type": "git",
+        "url": "http://github.com/substack/dnode.git"
+    },
+    "dependencies": {
+        "bufferlist": "*",
+        "traverse":"*"
+    },
+    "engine": ["node >=0.1.97"]
+}
