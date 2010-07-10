@@ -95,9 +95,8 @@ client handle as the first argument.
 Bidirectional Browser Example
 -----------------------------
 
-The dnode-client.js file in this distribution exposes the same DNode client
-interface to browser-based javascript using socket.io. This example provides a
-DNode service
+The files in web/ expose the same DNode connect interface to browser-based
+javascript over socket.io.
 
 You'll need to symlink [socket.io.js](http://github.com/LearnBoost/Socket.IO)
 into the web/ directory of this distribution.
