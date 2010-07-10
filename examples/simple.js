@@ -4,8 +4,8 @@ var sys = require('sys');
 
 // server-side:
 var server = DNode({
-    timesTen : function (n,f) { f(n * 10) },
-    moo : function (f) { f(100) },
+    timesTen : function (n,reply) { reply(n * 10) },
+    moo : function (reply) { reply(100) },
     sTimesTen : DNode.sync(function (n) { return n * 10 }),
 }).listen(6060);
 

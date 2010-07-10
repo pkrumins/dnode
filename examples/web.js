@@ -1,21 +1,21 @@
 #!/usr/bin/env node
+// NOTE: Symlink socket.io.js into web/ first
+
 var DNode = require('dnode').DNode;
 var sys = require('sys');
 var fs = require('fs');
 var http = require('http');
 
 var html = fs.readFileSync(__dirname + '/web.html');
-var js = {
-    'dnode-client.js' : fs.readFileSync(__dirname + '/../dnode-client.js'),
-    // Symlink socket.io.js to examples/ first
-    'socket.io.js' : fs.readFileSync(__dirname + '/socket.io.js'),
-};
+var js = ['socket.io.js','traverse.js','scrubber.js','dnode.js']
+    .reduce(function (acc,file) {
+        return acc + fs.readFileSync(__dirname + '/../web/' + file);
+    }, '');
 
 var httpServer = http.createServer(function (req,res) {
-    var m = req.url.match(/^\/js\/(.+)/);
-    if (m) {
+    if (req.url == '/dnode.js') {
         res.writeHead(200, { 'Content-Type' : 'text/javascript' });
-        res.end(js[m[1]]);
+        res.end(js);
     }
     else {
         res.writeHead(200, { 'Content-Type' : 'text/html' });
@@ -26,16 +26,16 @@ httpServer.listen(6061);
 
 // listen on 6060 and socket.io
 DNode(function (client) {
-    this.timesTen = function (n) { return n * 10 };
-    this.whoAmI = DNode.async(function (f) {
+    this.timesTen = function (n,f) { f(n * 10) };
+    this.whoAmI = function (reply) {
         client.name(function (name) {
-            f(name
+            reply(name
                 .replace(/Mr\.?/,'Mister')
                 .replace(/Ms\.?/,'Miss')
                 .replace(/Mrs\.?/,'Misses')
             );
         })
-    });
+    };
 }).listen({
     protocol : 'socket.io',
     server : httpServer,
