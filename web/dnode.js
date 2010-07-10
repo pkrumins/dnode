@@ -84,3 +84,13 @@ DNode.sync = function (f) {
     };
 };
 
+// annoyingly many browsers don't have these:
+if (!Object.keys) Object.keys = function (obj) {
+    var keys = [];
+    for (var key in obj) keys.push(key);
+    return keys;
+};
+
+if (!Array.prototype.forEach) Array.prototype.forEach = function (f) {
+    for (var i in this) f(this[i]);
+};
