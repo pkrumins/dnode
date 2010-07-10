@@ -3,7 +3,7 @@ DNode
 
 DNode is a node.js library for asynchronous, bidirectional remote method
 invocation across the network. Transports for network sockets and
-websocket-style socket.io connections are provided.
+websocket-style socket.io connections are available.
 
 A DNode server listens for incoming connections and offers up an object to
 clients that connect. Clients can call any of the server's methods and clients
@@ -175,6 +175,7 @@ Data Fields
 -----------
 
 All messages have this format:
+
 * method :: String or Integer
 * arguments :: Array
 * callbacks :: Object
