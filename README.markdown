@@ -179,9 +179,19 @@ When the method field is an integer, it refers to an anonymous function
 declared in the callbacks field of a previous request.
 
 The arguments field contains the data to supply the remote method or callback.
-The callbacks field maps an argument index to an integral callback ID.
-The contents of the arguments array at a callback index is not used, so it may
-be any valid JSON.
+The callbacks field maps an integral callback ID to an Array of elements
+representing the callback's path in the arguments structure. For instance,
+an arguments array before transformation of
+    [ 50, 3, { "b" : function () {}, "c" : 4 }, function () {} ]
+could result in a callback field of
+    { 103 : [ 2, "b" ], 104 : [ 3 ] }
+if the functions were assigned IDs of 103 and 104 from left to right
+respectively. Function 103 is in the object at element index 2 and at the key
+"b", so it's path is [ 2, "b" ]. Function 104 is just at index 3 in the argument
+field so its path is just [ 3 ].
+
+The contents of the arguments array at a callback location is not used, so it
+may contain any value or may be left undefined.
 
 Each side of the connection must respond to the "methods" method, which supplies
 a list of available named methods to the callback. The output of "methods" may
