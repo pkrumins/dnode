@@ -1,9 +1,21 @@
 DNode
 =====
 
-DNode is a node.js library for asynchronous, bidirectional remote method invocation.
-Transports for network sockets and websocket-style socket.io connections are
-provided.
+DNode is a node.js library for asynchronous, bidirectional remote method
+invocation across the network. Transports for network sockets and
+websocket-style socket.io connections are provided.
+
+A DNode server listens for incoming connections and offers up an object to
+clients that connect. Clients can call any of the server's methods and clients
+can offer up their own objects for the server to call. When a client calls a
+remote method on a server, all functions in the arguments array are
+automatically transformed such that when the server calls the function supplied
+by the client, the function executes on the client with the arguments provided
+by the server.
+
+The return values of hosted methods are ignored. All return values are provided
+through callbacks. However, DNode.sync() transforms a function that returns a
+value into a function that calls its last argument with its return value.
 
 Examples
 ========
@@ -16,7 +28,7 @@ Client and Server
     
     // server-side:
     DNode({
-        timesTen : function (n) { return n * 10 }
+        timesTen : function (n,f) { f(n * 10) }
     }).listen(6060);
     
     // client-side:
@@ -26,18 +38,14 @@ Client and Server
         });
     });
 
-Asynchronous Function Example
+Synchronous Function Example
 -----------------------------
-
-And if you want to perform timesTen asynchronously on the server side,
-DNode.async supplies a function to call with the return value as the last
-argument. Example:
 
     // server-side:
     var DNode = require('dnode').DNode;
     DNode({
-        timesTen : DNode.async(function (n,f) {
-            f(n * 10);
+        timesTen : DNode.sync(function (n) {
+            return n * 10;
         })
     }).listen(6060);
 
@@ -57,22 +65,21 @@ client handle as the first argument.
     
     // server-side:
     DNode(function (client) {
-        this.timesX = DNode.async(function (n,f) {
+        this.timesX = function (n,f) {
             client.x(function (x) {
                 f(n * x);
             });
-        });
+        }; 
     }).listen(6060);
     
     // client-side:
     DNode({
-        x : function () { return 20 }
+        x : function (f) { f(20) }
     }).connect(6060, function (remote) {
         remote.timesX(3, function (res) {
             sys.puts(res); // 20 * 3 == 60
         });
     });
-
 
 Bidirectional Browser Example
 -----------------------------
@@ -82,15 +89,14 @@ interface to browser-based javascript using socket.io. This example provides a
 DNode service
 
 You'll need to symlink [socket.io.js](http://github.com/LearnBoost/Socket.IO)
-into the examples/ directory, where these files reside.
+into the web/ directory of this distribution.
 
 ### web.html
 
-    <script type="text/javascript" src="/js/socket.io.js"></script>
-    <script type="text/javascript" src="/js/dnode-client.js"></script>
+    <script type="text/javascript" src="/dnode.js"></script>
     <script type="text/javascript">
         DNode({
-            name : function () { return 'Mr. Spock' },
+            name : function (f) { f('Mr. Spock') },
         }).connect(function (remote) {
             remote.timesTen(10, function (n) {
                 document.getElementById("result").innerHTML = String(n);
@@ -100,30 +106,27 @@ into the examples/ directory, where these files reside.
             });
         });
     </script>
-
+    
     <p>timesTen(10) == <span id="result">?</span></p>
     <p>My name is <span id="name">?</span>.</p>
 
 ### web.js
-    
-    #!/usr/bin/env node
+
     var DNode = require('dnode').DNode;
     var sys = require('sys');
     var fs = require('fs');
     var http = require('http');
-
+    
     var html = fs.readFileSync(__dirname + '/web.html');
-    var js = {
-        'dnode-client.js' : fs.readFileSync(__dirname + '/../dnode-client.js'),
-        // Symlink socket.io.js to examples/ first
-        'socket.io.js' : fs.readFileSync(__dirname + '/socket.io.js'),
-    };
-
+    var js = ['socket.io.js','traverse.js','scrubber.js','dnode.js']
+        .reduce(function (acc,file) {
+            return acc + fs.readFileSync(__dirname + '/../web/' + file);
+        }, '');
+    
     var httpServer = http.createServer(function (req,res) {
-        var m = req.url.match(/^\/js\/(.+)/);
-        if (m) {
+        if (req.url == '/dnode.js') {
             res.writeHead(200, { 'Content-Type' : 'text/javascript' });
-            res.end(js[m[1]]);
+            res.end(js);
         }
         else {
             res.writeHead(200, { 'Content-Type' : 'text/html' });
@@ -131,24 +134,24 @@ into the examples/ directory, where these files reside.
         }
     });
     httpServer.listen(6061);
-
+    
     // listen on 6060 and socket.io
     DNode(function (client) {
-        this.timesTen = function (n) { return n * 10 };
-        this.whoAmI = DNode.async(function (f) {
+        this.timesTen = function (n,f) { f(n * 10) };
+        this.whoAmI = function (reply) {
             client.name(function (name) {
-                f(name
+                reply(name
                     .replace(/Mr\.?/,'Mister')
                     .replace(/Ms\.?/,'Miss')
                     .replace(/Mrs\.?/,'Misses')
                 );
             })
-        });
+        };
     }).listen({
         protocol : 'socket.io',
         server : httpServer,
         transports : 'websocket xhr-multipart xhr-polling htmlfile'.split(/\s+/),
-    })
+    });
 
 Also note that .listen() returns "this", so you can bind multiple listeners to
 the same DNode instance by chaining .listen() calls. This is useful when
@@ -160,6 +163,7 @@ Conventions
 
 For the most part, when a method supplies a single return value, the callback
 function should be the method's last argument, like blocks in ruby.
+Incidentally, this module was inspired by ruby's DRb.
 
 Protocol
 ========
@@ -167,7 +171,8 @@ Protocol
 DNode uses newline-terminated JSON messages. Each side of the connection may
 request that a method be invoked on the other side.
 
-### Message Data Fields
+Data Fields
+-----------
 
 All messages have this format:
 * method :: String or Integer
@@ -193,15 +198,18 @@ field so its path is just [ 3 ].
 The contents of the arguments array at a callback location is not used, so it
 may contain any value or may be left undefined.
 
-Each side of the connection must respond to the "methods" method, which supplies
-a list of available named methods to the callback. The output of "methods" may
-change over the course of the connection so the remote may request it multiple
-times. An authentication protocol can exploit this behavior by providing a
-different set of available methods after a client has authenticated, for
-instance.
+Methods
+-------
 
-Todo
-====
+After the connection is established, each side should send a message with the
+method field set to "methods", callbacks as an empty object, and arguments as an
+array of the names of the methods that the side provides as strings.
 
-* Event emitters for errors and other events
-* Method chains for friendlier sequential method calls
+Example of this initial "methods" message:
+    {
+        "method" : "methods",
+        "arguments" : ["timesTen","moo"],
+        "callbacks" : {}
+    }
+
+After methods are exchanged, each side may request methods from the other.
