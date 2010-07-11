@@ -16,7 +16,7 @@ function Scrubber () {
         }).get();
         return {
             arguments : args,
-            callbacks : paths,
+            callbacks : paths
         };
     };
     
@@ -42,3 +42,4 @@ function Scrubber () {
         return args;
     };
 }
+

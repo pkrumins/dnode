@@ -1,7 +1,7 @@
 <script type="text/javascript" src="/dnode.js"></script>
 <script type="text/javascript">
     DNode({
-        name : function (f) { f('Mr. Spock') },
+        name : function (f) { f('Mr. Spock') }
     }).connect(function (remote) {
         remote.timesTen(10, function (n) {
             document.getElementById("result").innerHTML = String(n);

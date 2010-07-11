@@ -30,7 +30,7 @@ function Traverse (obj) {
                     }
                     state.node = x;
                 },
-                level : path.length,
+                level : path.length
             };
             
             f.call(state, node);
