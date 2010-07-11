@@ -26,6 +26,12 @@ Or check out the repository and link your development copy:
     cd dnode
     npm link .
 
+DNode depends on traverse and bufferlist, which are also on npm and will be
+automatically fetched by `npm install dnode`. You can also fetch them from
+github:
+    git clone http://github.com/substack/js-traverse.git
+    git clone http://github.com/substack/node-bufferlist.git
+
 Examples
 ========
 
