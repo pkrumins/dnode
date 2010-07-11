@@ -27,9 +27,9 @@ Or check out the repository and link your development copy:
     npm link .
 
 DNode depends on
-"socket.io":http://github.com/LearnBoost/Socket.IO-node,
-"traverse":http://github.com/substack/js-traverse.git,
-and "bufferlist":http://github.com/substack/node-bufferlist.git,
+[socket.io](http://github.com/LearnBoost/Socket.IO-node),
+[traverse](http://github.com/substack/js-traverse.git),
+and [bufferlist](http://github.com/substack/node-bufferlist.git),
 which are all on npm and will be automatically fetched by `npm install dnode`.
 You can also fetch them from github too:
     git clone http://github.com/LearnBoost/Socket.IO-node.git
@@ -109,8 +109,9 @@ Bidirectional Browser Example
 The files in web/ expose the same DNode connect interface to browser-based
 javascript over socket.io.
 
-You'll need to symlink [socket.io.js](http://github.com/LearnBoost/Socket.IO)
-into the web/ directory of this distribution.
+You'll need to symlink socket.io.js from
+[socket.io](http://github.com/LearnBoost/Socket.IO) into the web/ directory of
+this distribution.
 
 ### web.html
 
