@@ -10,6 +10,7 @@
         "url": "http://github.com/substack/dnode.git"
     },
     "dependencies": {
+        "socket.io":">=0.4.1",
         "bufferlist": "*",
         "traverse":"*"
     },
