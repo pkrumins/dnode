@@ -9,11 +9,23 @@ A DNode server listens for incoming connections and offers up an object to
 clients that connect. Clients can call any of the methods that the server hosts
 and clients can offer their own methods for the server to call.
 
-DNode uses continuation-passing-style to make return values available.
-In order to make return values available, the server calls a function supplied
-to it by the client as an argument. These functions execute on the client side
-with the arguments provided by the server. Functions may be nested arbitrarily
-deeply in a method's arguments and can be called multiple times by the server.
+DNode uses continuation-passing-style to make return values available: the
+server calls a function supplied to it by the client as an argument. These
+functions execute on the client side with the arguments provided by the server.
+Functions may be nested arbitrarily deeply in a method's arguments and can be
+called multiple times by the server.
+
+Or [as Simon Willison puts it](http://simonwillison.net/2010/Jul/11/dnode/)
+(awesomely):
+
+> Mind-bendingly clever. DNode lets you expose a JavaScript function so that it
+> can be called from another machine using a simple JSON-based network protocol.
+> That’s relatively straight-forward... but DNode is designed for asynchronous
+> environments, and so also lets you pass callback functions which will be
+> translated in to references and used to make remote method invocations back to
+> your original client. And to top it off, there’s a browser client library so
+> you can perform the same trick over a WebSocket between a browser and a
+> server.
 
 Installation
 ============
@@ -106,12 +118,12 @@ client handle as the first argument.
 Bidirectional Browser Example
 -----------------------------
 
-The files in web/ expose the same DNode connect interface to browser-based
-javascript over socket.io.
+DNode's browser-based interface works just like the node.js version.
+To make DNode easier to deploy, all the necessary browser-side code
+including [Socket.io](http://github.com/LearnBoost/Socket.IO)
+is available by calling `require('dnode/web').source()` on the server-side.
 
-You'll need to symlink socket.io.js from
-[socket.io](http://github.com/LearnBoost/Socket.IO) into the web/ directory of
-this distribution.
+Here's a complete web example:
 
 ### web.html
 
@@ -138,13 +150,12 @@ this distribution.
     var sys = require('sys');
     var fs = require('fs');
     var http = require('http');
-    
+
+    // load the html page and the client-side javascript into memory
     var html = fs.readFileSync(__dirname + '/web.html');
-    var js = ['socket.io.js','traverse.js','scrubber.js','dnode.js']
-        .reduce(function (acc,file) {
-            return acc + fs.readFileSync(__dirname + '/../web/' + file);
-        }, '');
-    
+    var js = require('dnode/web').source();
+
+    // simple http server to serve pages and for socket.io transport
     var httpServer = http.createServer(function (req,res) {
         if (req.url == '/dnode.js') {
             res.writeHead(200, { 'Content-Type' : 'text/javascript' });
@@ -156,8 +167,8 @@ this distribution.
         }
     });
     httpServer.listen(6061);
-    
-    // listen on 6060 and socket.io
+
+    // share an object with DNode over socket.io on top of the http server
     DNode(function (client) {
         this.timesTen = function (n,f) { f(n * 10) };
         this.whoAmI = function (reply) {
@@ -215,7 +226,7 @@ could result in a callback field of
     { 103 : [ 2, "b" ], 104 : [ 3 ] }
 if the functions were assigned IDs of 103 and 104 from left to right
 respectively. Function 103 is in the object at element index 2 and at the key
-"b", so it's path is [ 2, "b" ]. Function 104 is just at index 3 in the argument
+"b", so its path is [ 2, "b" ]. Function 104 is just at index 3 in the argument
 field so its path is just [ 3 ].
 
 The contents of the arguments array at a callback location is not used, so it
