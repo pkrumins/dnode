@@ -1,17 +1,14 @@
 #!/usr/bin/env node
-// NOTE: Symlink socket.io.js into web/ first
-
 var DNode = require('dnode').DNode;
 var sys = require('sys');
 var fs = require('fs');
 var http = require('http');
 
+// load the html page and the client-side javascript into memory
 var html = fs.readFileSync(__dirname + '/web.html');
-var js = ['socket.io.js','traverse.js','scrubber.js','dnode.js']
-    .reduce(function (acc,file) {
-        return acc + fs.readFileSync(__dirname + '/../web/' + file);
-    }, '');
+var js = require('dnode/web').source();
 
+// simple http server to serve pages and for socket.io transport
 var httpServer = http.createServer(function (req,res) {
     if (req.url == '/dnode.js') {
         res.writeHead(200, { 'Content-Type' : 'text/javascript' });
@@ -24,7 +21,7 @@ var httpServer = http.createServer(function (req,res) {
 });
 httpServer.listen(6061);
 
-// listen on 6060 and socket.io
+// share an object with DNode over socket.io on top of the http server
 DNode(function (client) {
     this.timesTen = function (n,f) { f(n * 10) };
     this.whoAmI = function (reply) {
