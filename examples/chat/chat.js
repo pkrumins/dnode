@@ -43,7 +43,8 @@ function ChatServer (client, con) {
     
     con.addListener('disconnect', function () {
         con.broadcast('parted', name);
-        names.splice(names.indexOf(name),1);
+        var i = names.indexOf(name);
+        if (i >= 0) names.splice(i,1);
     });
     
     this.chat = function (msg) {
