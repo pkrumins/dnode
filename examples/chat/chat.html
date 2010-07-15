@@ -16,35 +16,32 @@
     });
     
     function chat (name) {
-        // connect to the chat server now that we've got a name
+        // Connect to the chat server now that we've got a name
         DNode(function () {
-            var div = $('#messages');
-            
             this.name = function (f) { f(name) };
             
             this.joined = function (who) {
-                div.append($('<div>')
+                addLine($('<div>')
                     .addClass('join')
                     .text(who + ' has joined')
                 );
             };
             
             this.parted = function (who) {
-                div.append($('<div>')
+                addLine($('<div>')
                     .addClass('part')
                     .text(who + ' has left')
                 );
             };
             
             this.said = function (who,msg) {
-                div.append($('<div>').append(
+                addLine($('<div>').append(
                     $('<span>')
                         .addClass(who == name ? 'me' : 'who')
                         .text('<' + who + '>')
                     ,
                     $('<span>').addClass('msg').text(msg)
                 ));
-                div.animate({ scrollTop: div.attr('scrollHeight') }, 200);
             };
         }).connect(function (remote) {
             $('form#post').submit(function (ev) {
@@ -53,6 +50,12 @@
                 this.elements.msg.value = '';
             });
         });
+    }
+    
+    function addLine(elem) {
+        var div = $('#messages');
+        div.append(elem);
+        div.animate({ scrollTop: div.attr('scrollHeight') }, 200);
     }
 </script>
 <link rel="StyleSheet" type="text/css" href="chat.css">
