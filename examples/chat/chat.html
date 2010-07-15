@@ -1,0 +1,113 @@
+<html>
+<head>
+<title>DNode Chat Example</title>
+<script
+    type="text/javascript"
+    src="http://code.jquery.com/jquery-1.4.2.min.js"
+></script>
+<script type="text/javascript" src="/dnode.js"></script>
+<script type="text/javascript">
+    // DNode really shines in complex client/server interactions with lots of
+    // state which are rather unlike this simple chat server. Still, this
+    // example shows that it's just as easy to write a chat server in DNode as
+    // in plain socket.io.
+    
+    $(window).load(function () {
+        // Fetch the user's name before the main chat code fires
+        $('form#name').submit(function (ev) {
+            ev.preventDefault();
+            var name = $('input[name="name"]').val();
+            $('#messages').show();
+            $('#prompt').hide();
+            chat(name);
+        });
+    });
+    
+    function chat (name) {
+        DNode({
+            send : function (who,msg) {
+                var div = $('#messages');
+                div.append(
+                    $('<div>').append(
+                        $('<span>')
+                            .addClass(who == name ? 'me' : 'who')
+                            .text('<' + who + '>')
+                        ,
+                        $('<span>').addClass('msg').text(msg)
+                    )
+                );
+                div.animate({ scrollTop: div.attr('scrollHeight') }, 200);
+            }
+        }).connect(function (remote) {
+            $('form#post').submit(function (ev) {
+                ev.preventDefault();
+                remote.chat(name, this.elements.msg.value);
+                this.elements.msg.value = '';
+            });
+        });
+    }
+</script>
+
+<style type="text/css">
+    div#prompt {
+        width: 600px;
+        height: 400px;
+        margin: auto;
+        display: table-cell;
+        vertical-align: middle;
+        text-align: center;
+        background-color: rgb(50,50,100);
+        color: white;
+    }
+    
+    div#chat {
+        width: 600px;
+        margin: auto;
+    }
+    
+    div#messages {
+        display: none;
+        overflow-x: hidden;
+        overflow-y: scroll;
+        width: 600px;
+        height: 400px;
+        border-color: black;
+        border-style: solid;
+        border-width: 2px;
+    }
+    
+    form#post input {
+        width: 600px;
+    }
+    
+    span.who {
+        font-weight: bold;
+        margin-right: 1em;
+        color: rgb(100,100,100);
+    }
+    
+    span.me {
+        font-weight: bold;
+        margin-right: 1em;
+        color: black;
+    }
+    
+    span.msg {}
+</style>
+</head>
+<body>
+    <div id="chat">
+        <div id="prompt">
+            <form id="name">
+                Name:
+                <input type="text" name="name">
+            </form>
+        </div>
+        
+        <div id="messages"></div>
+        
+        <form id="post">
+            <input type="text" name="msg">
+        </form>
+    </div>
+</body>
