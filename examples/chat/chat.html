@@ -46,8 +46,25 @@
         }).connect(function (remote) {
             $('form#post').submit(function (ev) {
                 ev.preventDefault();
-                remote.chat(name, this.elements.msg.value);
+                remote.chat(this.elements.msg.value);
                 this.elements.msg.value = '';
+            });
+            
+            // fetch a list of all the connected users
+            remote.names(function (names) {
+                addLine($('<div>')
+                    .addClass('users')
+                    .text('Users: ' + (
+                        names.map(function (name) {
+                            return '[ ' + name
+                                .replace(/\\/g,'\\\\')
+                                .replace(/\[/g,'\\[')
+                                .replace(/\]/g,'\\]')
+                            + ' ]'
+                        }).join(' ')
+                        || '(no users)'
+                    ))
+                );
             });
         });
     }

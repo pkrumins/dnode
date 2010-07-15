@@ -29,6 +29,7 @@ var httpServer = http.createServer(function (req,res) {
 httpServer.listen(6061);
 
 // share the chat server routines with remote clients
+var names = [];
 function ChatServer (client, con) {
     var name = '?';
     
@@ -36,16 +37,20 @@ function ChatServer (client, con) {
         client.name(function (who) {
             con.broadcast('joined', who);
             name = who;
+            names.push(name);
         });
     });
     
     con.addListener('disconnect', function () {
         con.broadcast('parted', name);
+        names.splice(names.indexOf(name),1);
     });
     
-    this.chat = function (who,msg) {
-        con.broadcast('said', who, msg);
+    this.chat = function (msg) {
+        con.broadcast('said', name, msg);
     };
+    
+    this.names = function (f) { f(names) };
 }
 
 DNode(ChatServer).listen({
