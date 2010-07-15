@@ -1,6 +1,6 @@
 {
     "name": "dnode",
-    "version": "0.0.3",
+    "version": "0.1.0",
     "descrption": "Asynchronous, bidirectional remote method invocation",
     "author": "James Halliday",
     "directories": { "lib": "./lib" },
