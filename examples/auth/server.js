@@ -33,7 +33,7 @@ function Session (params) {
     var user = params.user;
     var client = params.client;
     
-    conn.addListener('disconnect', function () {
+    conn.addListener('end', function () {
         sys.puts('User ' + sys.inspect(user) + ' disconnected');
     });
     
