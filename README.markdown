@@ -54,7 +54,7 @@ Examples
 Client and Server
 -----------------
 
-    var DNode = require('dnode').DNode;
+    var DNode = require('dnode');
     var sys = require('sys');
     
     // server-side:
@@ -76,7 +76,7 @@ The DNode.sync() function adds a callback as the last argument to a function for
 functions that return explicitly. This callback is called with the return value.
 
     // server-side:
-    var DNode = require('dnode').DNode;
+    var DNode = require('dnode');
     DNode({
         timesTen : DNode.sync(function (n) {
             return n * 10;
@@ -94,7 +94,7 @@ server provides methods for the client to call. The server can get at the
 client's methods by passing a constructor to DNode() that will be passed the
 client handle as the first argument. 
 
-    var DNode = require('dnode').DNode;
+    var DNode = require('dnode');
     var sys = require('sys');
     
     // server-side:
@@ -146,7 +146,7 @@ Here's a complete web example:
 
 ### web.js
 
-    var DNode = require('dnode').DNode;
+    var DNode = require('dnode');
     var sys = require('sys');
     var fs = require('fs');
     var http = require('http');
