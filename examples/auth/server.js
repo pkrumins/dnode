@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Serve an object with authentication
 
-var DNode = require('dnode').DNode;
+var DNode = require('dnode');
 var sys = require('sys');
 var fs = require('fs');
 

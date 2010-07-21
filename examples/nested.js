@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-var DNode = require('dnode').DNode;
+var DNode = require('dnode');
 var sys = require('sys');
 var EventEmitter = require('events').EventEmitter;
 

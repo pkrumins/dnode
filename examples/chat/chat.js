@@ -2,7 +2,7 @@
 // Simple DNode chat server example.
 // Just as simple as plain socket.io since it's a simple problem.
 
-var DNode = require('dnode').DNode;
+var DNode = require('dnode');
 var fs = require('fs');
 var http = require('http');
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Connect to the auth server and display a quote from it.
 
-var DNode = require('dnode').DNode;
+var DNode = require('dnode');
 var sys = require('sys');
 
 if (process.argv.length < 4) {
