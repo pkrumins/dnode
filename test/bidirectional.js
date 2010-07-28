@@ -1,6 +1,8 @@
 var DNode = require('dnode');
 
 exports['bidirectional'] = function (assert) {
+    var port = Math.floor(Math.random() * 40000 + 10000);
+    
     var counts = { timesX : 0, clientX : 0, x : 0 };
     
     var server = DNode(function (client) {
@@ -13,14 +15,14 @@ exports['bidirectional'] = function (assert) {
                 f(n * x);
             });
         }; 
-    }).listen(6060);
+    }).listen(port);
     
     DNode({
         x : function (f) {
             counts.x ++;
             f(20);
         }
-    }).connect(6060, function (remote, conn) {
+    }).connect(port, function (remote, conn) {
         remote.timesX(3, function (res) {
             assert.equal(res, 60, 'result of 20 * 3 == 60');
             conn.end();

@@ -1,20 +1,22 @@
 var DNode = require('dnode');
 
 exports['nested'] = function (assert) {
+    var port = Math.floor(Math.random() * 40000 + 10000);
+    
     var EventEmitter = require('events').EventEmitter;
     
     var server1 = DNode({
         timesTen : function (n,reply) { reply(n * 10) }
-    }).listen(6060);
+    }).listen(port);
     
     var server2 = DNode({
         timesTwenty : function (n,reply) { reply(n * 20) }
-    }).listen(6061);
+    }).listen(port + 1);
     
     var moo = new EventEmitter;
     
-    DNode.connect(6060, function (remote1, conn1) {
-        DNode.connect(6061, function (remote2, conn2) {
+    DNode.connect(port, function (remote1, conn1) {
+        DNode.connect(port + 1, function (remote2, conn2) {
             moo.on('hi', function (x) {
                 remote1.timesTen(x, function (res) {
                     assert.equal(res, 5000, 'emitted value times ten');
