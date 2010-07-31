@@ -27,6 +27,7 @@ var httpServer = http.createServer(function (req,res) {
     }
 });
 httpServer.listen(6061);
+console.log('http://localhost:6061/');
 
 // share the chat server routines with remote clients
 var names = [];
@@ -41,7 +42,7 @@ function ChatServer (client, con) {
         });
     });
     
-    con.addListener('disconnect', function () {
+    con.addListener('end', function () {
         con.broadcast('parted', name);
         var i = names.indexOf(name);
         if (i >= 0) names.splice(i,1);
