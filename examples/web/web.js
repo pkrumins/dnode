@@ -20,6 +20,7 @@ var httpServer = http.createServer(function (req,res) {
     }
 });
 httpServer.listen(6061);
+console.log('http://localhost:6061/');
 
 // share an object with DNode over socket.io on top of the http server
 DNode(function (client) {
