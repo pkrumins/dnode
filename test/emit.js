@@ -5,7 +5,12 @@ var sys = require('sys');
 exports['event emitter test'] = function (assert) {
     var emitted = false;
     var ev = new EventEmitter;
-    ev.emit = ev.emit; // expose to dnode
+    
+    ev.emit = function () {
+        var args = [].slice.call(arguments);
+        EventEmitter.prototype.emit.apply(ev, args);
+    };
+    
     ev.on('test', function (a, b, c) {
         assert.equal(a, 1);
         assert.equal(b, 2);
