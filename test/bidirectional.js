@@ -1,4 +1,5 @@
 var DNode = require('dnode');
+var sys = require('sys');
 
 exports['bidirectional'] = function (assert) {
     var port = Math.floor(Math.random() * 40000 + 10000);
@@ -24,13 +25,13 @@ exports['bidirectional'] = function (assert) {
         }
     }).connect(port, function (remote, conn) {
         remote.timesX(3, function (res) {
-            assert.equal(res, 60, 'result of 20 * 3 == 60');
-            conn.end();
             server.end();
+            assert.equal(res, 60, 'result of 20 * 3 == 60');
         });
     });
     
     setTimeout(function () {
+        server.end();
         assert.equal(counts.timesX, 1, 'timesX called once');
         assert.equal(counts.clientX, 1, 'clientX called once');
     }, 100);
