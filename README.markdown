@@ -236,14 +236,19 @@ Methods
 -------
 
 After the connection is established, each side should send a message with the
-method field set to "methods", callbacks as an empty object, and arguments as an
-array of the names of the methods that the side provides as strings.
+method field set to "methods". The arguments fields should contain an array with
+a single element: the object that should be wrapped. The callbacks field is
+populated from the arguments array given the procedure above.
 
-Example of this initial "methods" message:
+Example of this initial methods message:
     {
         "method" : "methods",
-        "arguments" : ["timesTen","moo"],
-        "callbacks" : {}
+        "arguments" : [ { "timesTen" : "[Function]", "moo" : "[Function]" } ],
+        "callbacks" : { "0" : ["0","timesTen"], "1" : ["0","moo"] }
     }
 
-After methods are exchanged, each side may request methods from the other.
+Note that the string "[Function]" is just a placeholder and its value is
+unimportant.
+
+After methods are exchanged, each side may request methods from the other based
+on named keys or numeric callback IDs.
