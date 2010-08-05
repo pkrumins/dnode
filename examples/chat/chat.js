@@ -5,6 +5,7 @@
 var DNode = require('dnode');
 var fs = require('fs');
 var http = require('http');
+var EventEmitter = require('events').EventEmitter;
 
 // load the files to serve up into memory
 var html = fs.readFileSync(__dirname + '/chat.html');
@@ -30,29 +31,29 @@ httpServer.listen(6061);
 console.log('http://localhost:6061/');
 
 // share the chat server routines with remote clients
-var names = [];
+var emitter = new EventEmitter;
+var names = {};
 function ChatServer (client, con) {
-    var name = '?';
-    
     con.addListener('ready', function () {
-        client.name(function (who) {
-            con.broadcast('joined', who);
-            name = who;
-            names.push(name);
-        });
+        emitter.on('joined', client.joined);
+        emitter.on('said', client.said);
+        emitter.on('parted', client.parted);
+        emitter.emit('joined', client.name);
+        names[client.name] = 1;
     });
     
     con.addListener('end', function () {
-        con.broadcast('parted', name);
-        var i = names.indexOf(name);
-        if (i >= 0) names.splice(i,1);
+        emitter.emit('parted', client.name);
+        delete names[client.name];
     });
     
-    this.chat = function (msg) {
-        con.broadcast('said', name, msg);
+    this.say = function (msg) {
+        emitter.emit('said', client.name, msg);
     };
     
-    this.names = function (f) { f(names) };
+    this.names = function (f) {
+        f(Object.keys(names))
+    };
 }
 
 DNode(ChatServer).listen({

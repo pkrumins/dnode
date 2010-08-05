@@ -18,7 +18,7 @@
     function chat (name) {
         // Connect to the chat server now that we've got a name
         DNode(function () {
-            this.name = function (f) { f(name) };
+            this.name = name;
             
             this.joined = function (who) {
                 addLine($('<div>')
@@ -46,7 +46,7 @@
         }).connect(function (remote) {
             $('form#post').submit(function (ev) {
                 ev.preventDefault();
-                remote.chat(this.elements.msg.value);
+                remote.say(this.elements.msg.value);
                 this.elements.msg.value = '';
             });
             
