@@ -93,25 +93,34 @@ Clients can provide methods for the remote server to call just as the remote
 server provides methods for the client to call. The server can get at the
 client's methods by passing a constructor to DNode() that will be passed the
 client handle as the first argument. 
-
+ 
+    // server
     var DNode = require('dnode');
-    var sys = require('sys');
-    
-    // server-side:
     DNode(function (client) {
-        this.timesX = function (n,f) {
-            client.x(function (x) {
-                f(n * x);
+        // Poll the client's own temperature() in celsius and convert that value to
+        // fahrenheit in the supplied callback
+        this.clientTempF = function (cb) {
+            client.temperature(function (degC) {
+                var degF = Math.round(degC * 9 / 5 + 32);
+                cb(degF);
             });
         }; 
     }).listen(6060);
-    
-    // client-side:
+
+
+    // client
     DNode({
-        x : function (f) { f(20) }
+        // Compute the client's temperature and stuff that value into the callback
+        temperature : function (cb) {
+            var degC = Math.round(20 + Math.random() * 10 - 5);
+            console.log(degC + '° C');
+            cb(degC);
+        }
     }).connect(6060, function (remote) {
-        remote.timesX(3, function (res) {
-            sys.puts(res); // 20 * 3 == 60
+        // Call the server's conversion routine, which polls the client's
+        // temperature in celsius degrees and converts to fahrenheit
+        remote.clientTempF(function (degF) {
+            console.log(degF + '° F');
         });
     });
 
