@@ -16,8 +16,8 @@ exports.refs = function (assert) {
             'remote.a != 1, a = ' + sys.inspect(remote.a)
         );
         assert.equal(
-            remote.b, 1,
-            'remote.b != 1, a = ' + sys.inspect(remote.b)
+            remote.b, 2,
+            'remote.b != 2, b = ' + sys.inspect(remote.b)
         );
     });
 };
