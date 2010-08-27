@@ -5,10 +5,7 @@ exports['remote emitters'] = function (assert) {
     var port = Math.floor(Math.random() * 40000 + 10000);
     
     function Moo () {
-        this.moo = function () {
-            console.log('emit moo');
-            this.emit('moo!');
-        };
+        this.moo = function () { this.emit('moo') };
     }
     Moo.prototype = new RemoteEmitter;
     var moo = new Moo;
