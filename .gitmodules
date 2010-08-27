@@ -1,6 +1,3 @@
-[submodule "lib/vendor/Socket.IO"]
-	path = lib/vendor/web/Socket.IO
-	url = http://github.com/LearnBoost/Socket.IO.git
-[submodule "lib/vendor/web/Socket.IO"]
+[submodule "Socket.IO"]
 	path = lib/vendor/web/Socket.IO
 	url = http://github.com/LearnBoost/Socket.IO.git

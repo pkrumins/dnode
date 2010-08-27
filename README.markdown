@@ -31,12 +31,15 @@ Installation
 ============
 
 Using npm:
+
     npm install dnode
 
 Or check out the repository and link your development copy:
+
     git clone http://github.com/substack/dnode.git
     cd dnode
     npm link .
+    git clone http://github.com/LearnBoost/Socket.IO.git lib/vendor/web/Socket.IO
 
 DNode depends on
 [socket.io](http://github.com/LearnBoost/Socket.IO-node),
@@ -44,9 +47,14 @@ DNode depends on
 and [bufferlist](http://github.com/substack/node-bufferlist.git),
 which are all on npm and will be automatically fetched by `npm install dnode`.
 You can also fetch them from github too:
+
     git clone http://github.com/LearnBoost/Socket.IO-node.git
     git clone http://github.com/substack/js-traverse.git
     git clone http://github.com/substack/node-bufferlist.git
+
+For the require('dnode/web') stuff to work, you'll need Socket.IO (different
+from Socket.IO-node), which is what the second `git clone` in the checkout
+instructions is all about. Submodules are hard.
 
 Examples
 ========
@@ -54,15 +62,18 @@ Examples
 Client and Server
 -----------------
 
+Server:
+
     var DNode = require('dnode');
-    var sys = require('sys');
-    
-    // server-side:
     DNode({
         timesTen : function (n,f) { f(n * 10) }
     }).listen(6060);
+ 
+Client:
+
+    var DNode = require('dnode');
+    var sys = require('sys');
     
-    // client-side:
     DNode.connect(6060, function (remote) {
         remote.timesTen(5, function (res) {
             sys.puts(res); // 50, computation executed on the server
@@ -75,7 +86,8 @@ Synchronous Function Example
 The DNode.sync() function adds a callback as the last argument to a function for
 functions that return explicitly. This callback is called with the return value.
 
-    // server-side:
+Server:
+
     var DNode = require('dnode');
     DNode({
         timesTen : DNode.sync(function (n) {
@@ -94,7 +106,8 @@ server provides methods for the client to call. The server can get at the
 client's methods by passing a constructor to DNode() that will be passed the
 client handle as the first argument. 
  
-    // server
+Server:
+
     var DNode = require('dnode');
     DNode(function (client) {
         // Poll the client's own temperature() in celsius and convert that value to
@@ -107,8 +120,8 @@ client handle as the first argument.
         }; 
     }).listen(6060);
 
+Client:
 
-    // client
     DNode({
         // Compute the client's temperature and stuff that value into the callback
         temperature : function (cb) {
