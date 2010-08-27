@@ -1,0 +1,5 @@
+.git/*
+*.swp
+*.swo
+*/.git/*
+lib/vendor/web/Socket.IO/*
