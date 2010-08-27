@@ -43,14 +43,16 @@ exports['event emitter test'] = function (assert) {
     var port = Math.floor(Math.random() * 40000 + 10000);
     
     var server = DNode(Server).listen(port);
-    DNode.connect(port, function (remote) {
-        remote.pass('test1', ev);
-        var test2_calls = 0;
-        remote.on('test2', function f () {
-            test2_calls ++;
-            assert.ok(test2_calls == 1, 'test2 emitter not removed')
-            remote.removeListener('test2', f);
-            remote.emit('test2');
+    server.on('ready', function () {
+        DNode.connect(port, function (remote) {
+            remote.pass('test1', ev);
+            var test2_calls = 0;
+            remote.on('test2', function f () {
+                test2_calls ++;
+                assert.ok(test2_calls == 1, 'test2 emitter not removed')
+                remote.removeListener('test2', f);
+                remote.emit('test2');
+            });
         });
     });
     setTimeout(function () { server.end() }, 750);

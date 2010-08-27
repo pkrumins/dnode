@@ -9,15 +9,17 @@ exports.refs = function (assert) {
         b : 2,
     }).listen(port);
     
-    DNode.connect(port, function (remote) {
-        server.end();
-        assert.equal(
-            remote.a, 1,
-            'remote.a != 1, a = ' + sys.inspect(remote.a)
-        );
-        assert.equal(
-            remote.b, 2,
-            'remote.b != 2, b = ' + sys.inspect(remote.b)
-        );
+    server.on('ready', function () {
+        DNode.connect(port, function (remote) {
+            server.end();
+            assert.equal(
+                remote.a, 1,
+                'remote.a != 1, a = ' + sys.inspect(remote.a)
+            );
+            assert.equal(
+                remote.b, 2,
+                'remote.b != 2, b = ' + sys.inspect(remote.b)
+            );
+        });
     });
 };

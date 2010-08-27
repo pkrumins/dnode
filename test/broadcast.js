@@ -22,31 +22,33 @@ exports.broadcast = function (assert) {
     
     var recv = { 0 : [], 1 : [], 2 : [] };
     
-    DNode({
-        name : '#0',
-        message : function (msg) { recv[0].push(msg) },
-    }).connect(port, function (remote) {
-        setTimeout(function () {
-            remote.message('hello!');
-        }, 250);
-    });
-    
-    DNode({
-        name : '#1',
-        message : function (msg) { recv[1].push(msg) },
-    }).connect(port, function (remote) {
-        setTimeout(function () {
-            remote.message('hey');
-        }, 500);
-    });
-    
-    DNode({
-        name : '#2',
-        message : function (msg) { recv[2].push(msg) },
-    }).connect(port, function (remote) {
-        setTimeout(function () {
-            remote.message('wowsy');
-        }, 750);
+    server.on('ready', function () {
+        DNode({
+            name : '#0',
+            message : function (msg) { recv[0].push(msg) },
+        }).connect(port, function (remote) {
+            setTimeout(function () {
+                remote.message('hello!');
+            }, 250);
+        });
+        
+        DNode({
+            name : '#1',
+            message : function (msg) { recv[1].push(msg) },
+        }).connect(port, function (remote) {
+            setTimeout(function () {
+                remote.message('hey');
+            }, 500);
+        });
+        
+        DNode({
+            name : '#2',
+            message : function (msg) { recv[2].push(msg) },
+        }).connect(port, function (remote) {
+            setTimeout(function () {
+                remote.message('wowsy');
+            }, 750);
+        });
     });
     
     setTimeout(function () {

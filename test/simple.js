@@ -15,15 +15,17 @@ exports.simple = function (assert) {
         }),
     }).listen(port);
     
-    DNode.connect(port, function (remote) {
-        remote.moo(function (x) {
-            assert.equal(x, 100, 'remote moo == 100');
-        });
-        remote.sTimesTen(5, function (m) {
-            assert.equal(m, 50, '5 * 10 == 50');
-            remote.timesTen(m, function (n) {
-                assert.equal(n, 500, '50 * 10 == 500');
-                server.close();
+    server.on('ready', function () {
+        DNode.connect(port, function (remote) {
+            remote.moo(function (x) {
+                assert.equal(x, 100, 'remote moo == 100');
+            });
+            remote.sTimesTen(5, function (m) {
+                assert.equal(m, 50, '5 * 10 == 50');
+                remote.timesTen(m, function (n) {
+                    assert.equal(n, 500, '50 * 10 == 500');
+                    server.close();
+                });
             });
         });
     });
