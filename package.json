@@ -2,11 +2,14 @@
     "name" : "dnode",
     "version" : "0.2.2",
     "descrption" : "Asynchronous, bidirectional remote method calls with transparently wrapped callbacks",
+    "modules" : {
+        "index" : "./lib/dnode",
+        "web" : "./lib/web",
+        "events" : "./lib/events"
+    },
     "directories" : {
-        "lib" : "./lib",
         "test" : "./test"
     },
-    "main" : "./lib/dnode.js",
     "repository" : {
         "type" : "git",
         "url" : "http://github.com/substack/dnode.git"
