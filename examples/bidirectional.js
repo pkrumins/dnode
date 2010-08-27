@@ -14,18 +14,23 @@ var server = DNode(function (client) {
 }).listen(6060);
 
 // client:
-DNode({
-    // Compute the client's temperature and stuff that value into the callback
-    temperature : function (cb) {
-        var degC = Math.round(20 + Math.random() * 10 - 5);
-        console.log(degC + '° C');
-        cb(degC);
-    }
-}).connect(6060, function (remote) {
-    // Call the server's conversion routine, which polls the client's
-    // temperature in celsius degrees and converts to fahrenheit
-    remote.clientTempF(function (degF) {
-        console.log(degF + '° F');
-        server.end(); // kills the server
+server.on('ready', function () {
+    // The ready event is only necessary to avoid an initialization race
+    // condition since the server might not be ready by the time the client
+    // connects.
+    DNode({
+        // Compute the client's temperature and stuff that value into the callback
+        temperature : function (cb) {
+            var degC = Math.round(20 + Math.random() * 10 - 5);
+            console.log(degC + '° C');
+            cb(degC);
+        }
+    }).connect(6060, function (remote) {
+        // Call the server's conversion routine, which polls the client's
+        // temperature in celsius degrees and converts to fahrenheit
+        remote.clientTempF(function (degF) {
+            console.log(degF + '° F');
+            server.end(); // kills the server
+        });
     });
 });
