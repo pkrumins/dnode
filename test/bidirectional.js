@@ -35,5 +35,5 @@ exports['bidirectional'] = function (assert) {
         assert.equal(counts.timesX, 1, 'timesX called once');
         assert.equal(counts.clientX, 1, 'clientX called once');
         server.end();
-    }, 100);
+    }, 200);
 };

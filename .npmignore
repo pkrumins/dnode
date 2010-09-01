@@ -2,4 +2,7 @@
 *.swp
 *.swo
 */.git/*
-lib/vendor/web/Socket.IO/*
+lib/vendor/web/Socket.IO/lib/*
+lib/vendor/web/Socket.IO/bin/*
+lib/vendor/web/Socket.IO/Makefile
+lib/vendor/web/Socket.IO/README.md
