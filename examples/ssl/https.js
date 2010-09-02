@@ -8,8 +8,8 @@ var http = require('http');
 
 var crypto = require('crypto');
 try {
-    var privateKey = fs.readFileSync('./privatekey.pem').toString();
-    var certificate = fs.readFileSync('./certificate.pem').toString();
+    var privateKey = fs.readFileSync(__dirname + '/privatekey.pem', 'ascii');
+    var certificate = fs.readFileSync(__dirname + '/certificate.pem', 'ascii');
 }
 catch (e) {
     sys.puts('# {privatekey,certificate}.pem missing, do this first:');
