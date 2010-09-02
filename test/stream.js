@@ -11,6 +11,7 @@ exports.stream = function (assert) {
     
     var netServer = net.createServer(function (stream) {
         server.withStream(stream);
+        setTimeout(function () { stream.end() }, 200);
     })
     netServer.listen(port, 'localhost');
     
