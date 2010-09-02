@@ -3,12 +3,16 @@ var net = require('net');
 
 exports.stream = function (assert) {
     var port = Math.floor(Math.random() * 40000 + 10000);
-    var netServer = net.createServer().listen(port);
-    var netClient = net.createConnection(port);
     
     var server = DNode({
         meow : function f (g) { g('cats') }
-    }).listen(server);
+    });
+    
+    net.createServer(function (stream) {
+        server.withStream(stream);
+    }).listen(port);
+    
+    var netClient = net.createConnection(port);
     
     var times = 0;
     DNode.connect(netClient, function (remote) {
