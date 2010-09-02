@@ -34,9 +34,7 @@ DNode(function (client) {
             );
         })
     };
-}).listen({
-    protocol : 'socket.io',
-    server : httpServer,
+}).listen(httpServer, {
     transports : 'websocket xhr-multipart xhr-polling htmlfile'.split(/\s+/),
 });
 
