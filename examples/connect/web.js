@@ -16,11 +16,8 @@ var server = connect.createServer(
 ).listen(4050);
 console.log('http://localhost:4050/');
 
-server.on('connection', function cb (socket) {
-    DNode(Server).listen(socket.server, {
-        transports : 'websocket xhr-multipart xhr-polling htmlfile'.split(/\s+/)
-    });
-    server.removeListener('connection', cb);
+DNode(Server).listen(server, {
+    transports : 'websocket xhr-multipart xhr-polling htmlfile'.split(/\s+/)
 });
 
 function Server (client) {
