@@ -24,6 +24,8 @@ server.on('connection', function cb (socket) {
 });
 
 function Server (client) {
-    this.cat = function (cb) { cb('meow') };
+    this.cat = function (cb) {
+        cb('meow');
+    };
 }
 

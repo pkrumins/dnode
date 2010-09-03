@@ -30,7 +30,7 @@ server.on('ready', function () {
         // temperature in celsius degrees and converts to fahrenheit
         remote.clientTempF(function (degF) {
             console.log(degF + '° F');
-            server.end(); // kills the server
+            // server.end(); // kills the server
         });
     });
 });
