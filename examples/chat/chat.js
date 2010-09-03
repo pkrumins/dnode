@@ -57,7 +57,6 @@ function ChatServer (client, con) {
 }
 
 DNode(ChatServer).listen({
-    protocol : 'socket.io',
     server : httpServer,
     transports : 'websocket xhr-multipart xhr-polling htmlfile'
         .split(/\s+/),
