@@ -20,13 +20,15 @@ server.on('ready', function () {
 
 var finished = 0;
 function handler (remote) {
-    remote.pow(5, function (x) { });
-    finished ++;
-    if (finished == clients) {
-        server.end();
-        times.finished = Date.now();
-        console.dir(Hash.map(times, function (t) {
-            return (t - times.start) / 1000;
-        }));
-    }
+    remote.pow(5, function (x) {
+        finished ++;
+        if (finished == clients) {
+            server.end();
+            times.finished = Date.now();
+            console.log(clients + ' connections');
+            console.dir(Hash.map(times, function (t) {
+                return (t - times.start) / 1000;
+            }));
+        }
+    });
 }
