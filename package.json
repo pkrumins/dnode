@@ -1,6 +1,6 @@
 {
     "name" : "dnode",
-    "version" : "0.2.6",
+    "version" : "0.2.7",
     "descrption" : "Asynchronous, bidirectional remote method calls with transparently wrapped callbacks",
     "modules" : {
         "index" : "./lib/dnode",
