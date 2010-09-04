@@ -35,6 +35,7 @@ exports['circular refs'] = function (assert) {
                     sys.inspect(ref.d),
                     sys.inspect(ref)
                 );
+                server.end();
             });
         });
     });
