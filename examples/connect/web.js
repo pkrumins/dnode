@@ -7,12 +7,7 @@ var js = require('dnode/web').source();
 
 var server = connect.createServer(
     connect.staticProvider(__dirname),
-    function (req, res) {
-        if (req.url == '/dnode.js') {
-            res.writeHead({ 'Content-Type' : 'text/javascript' });
-            res.end(js);
-        }
-    }
+    require('dnode/web').route('/dnode.js')
 ).listen(4050);
 console.log('http://localhost:4050/');
 
