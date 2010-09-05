@@ -34,7 +34,7 @@ console.log('http://localhost:6061/');
 var emitter = new EventEmitter;
 var names = {};
 function ChatServer (client, con) {
-    con.addListener('ready', function () {
+    con.on('ready', function () {
         emitter.on('joined', client.joined);
         emitter.on('said', client.said);
         emitter.on('parted', client.parted);
@@ -42,7 +42,10 @@ function ChatServer (client, con) {
         names[client.name] = 1;
     });
     
-    con.addListener('end', function () {
+    con.on('end', function () {
+        emitter.removeListener('joined', client.joined);
+        emitter.removeListener('said', client.said);
+        emitter.removeListener('parted', client.parted);
         emitter.emit('parted', client.name);
         delete names[client.name];
     });
