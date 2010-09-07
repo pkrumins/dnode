@@ -6,6 +6,11 @@ exports['remote emitters'] = function (assert) {
     
     function Moo () {
         this.moo = function () { this.emit('moo') };
+        
+        this.once('attach', function (self) {
+            self.rem = self.tie(new RemoteEmitter);
+            setTimeout(function () { self.rem.emit('tied', 1234) }, 100);
+        });
     }
     Moo.prototype = new RemoteEmitter;
     var moo = new Moo;
@@ -14,7 +19,7 @@ exports['remote emitters'] = function (assert) {
         return moo.attach(conn);
     }).listen(port);
     
-    var gotMoo = false;
+    var got = { moo : false, tied : false };
     
     server.on('ready', function () {
         DNode.connect(port, function (remote) {
@@ -24,8 +29,17 @@ exports['remote emitters'] = function (assert) {
             
             remote.subscribe(function (ev) {
                 ev.on('moo', function () {
-                    gotMoo = true;
-                    server.end();
+                    got.moo = true;
+                });
+            });
+            
+            assert.equal(remote.tie, undefined, 'Clients can see .tie');
+            assert.equal(remote.rem.tie, undefined, 'Clients can see .tie');
+            
+            remote.rem.subscribe(function (ev) {
+                ev.on('tied', function (x) {
+                    assert.equal(x, 1234);
+                    got.tied = true;
                 });
             });
             
@@ -36,7 +50,9 @@ exports['remote emitters'] = function (assert) {
     });
     
     setTimeout(function () {
-        assert.ok(gotMoo);
+        assert.ok(got.moo);
+        assert.ok(got.tied);
+        server.end();
     }, 200);
 };
 
