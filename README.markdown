@@ -274,3 +274,24 @@ unimportant.
 
 After methods are exchanged, each side may request methods from the other based
 on named keys or numeric callback IDs.
+
+Links
+-----
+
+An optional field, "links" supports representing cyclic data structures over
+JSON. The "links" field is an array of hashes with "from" and "to" keys set. The
+values of the "from" and "two" keys are array encoding paths through the data
+structure from the root, as in the "callbacks" field.
+
+Example of a method call with cyclic references:
+    {
+        "method" : 12,
+        "arguments" : [ { "a" : 5, "b" : [ { "c" : 5 } ] ],
+        "callbacks" : {},
+        "links" : [ { "from" : [ 0 ], "to" : [ 0, "b", 1 ] } ]
+    }
+This example creates a link to the first argument within the first argument's
+"b" key's second element.
+
+Note that links need not necessarily be cyclic, they can just more efficiently
+encode duplicate data, for instance.
