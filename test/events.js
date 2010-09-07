@@ -6,10 +6,15 @@ exports['remote emitters'] = function (assert) {
     
     function Moo () {
         this.moo = function () { this.emit('moo') };
+        this.rem0 = new RemoteEmitter;
         
         this.once('attach', function (self) {
-            self.rem = self.tie(new RemoteEmitter);
-            setTimeout(function () { self.rem.emit('tied', 1234) }, 100);
+            self.tie('rem0');
+            self.rem1 = self.tie(new RemoteEmitter);
+            setTimeout(function () {
+                self.rem0.emit('tied');
+                self.rem1.emit('tied');
+            }, 100);
         });
     }
     Moo.prototype = new RemoteEmitter;
@@ -19,7 +24,7 @@ exports['remote emitters'] = function (assert) {
         return moo.attach(conn);
     }).listen(port);
     
-    var got = { moo : false, tied : false };
+    var got = { moo : false, tied : [ false, false ] };
     
     server.on('ready', function () {
         DNode.connect(port, function (remote) {
@@ -34,12 +39,18 @@ exports['remote emitters'] = function (assert) {
             });
             
             assert.equal(remote.tie, undefined, 'Clients can see .tie');
-            assert.equal(remote.rem.tie, undefined, 'Clients can see .tie');
+            assert.equal(remote.rem0.tie, undefined, 'Clients can see .tie');
+            assert.equal(remote.rem1.tie, undefined, 'Clients can see .tie');
             
-            remote.rem.subscribe(function (ev) {
-                ev.on('tied', function (x) {
-                    assert.equal(x, 1234);
-                    got.tied = true;
+            remote.rem0.subscribe(function (ev) {
+                ev.on('tied', function () {
+                    got.tied[0] = true;
+                });
+            });
+            
+            remote.rem1.subscribe(function (ev) {
+                ev.on('tied', function () {
+                    got.tied[1] = true;
                 });
             });
             
@@ -51,7 +62,8 @@ exports['remote emitters'] = function (assert) {
     
     setTimeout(function () {
         assert.ok(got.moo);
-        assert.ok(got.tied);
+        assert.ok(got.tied[0]);
+        assert.ok(got.tied[1]);
         server.end();
     }, 200);
 };
