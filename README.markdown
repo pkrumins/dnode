@@ -43,8 +43,8 @@ Or check out the repository and link your development copy:
 
 DNode depends on
 [socket.io](http://github.com/LearnBoost/Socket.IO-node),
-[traverse](http://github.com/substack/js-traverse.git),
-and [bufferlist](http://github.com/substack/node-bufferlist.git),
+[traverse](http://github.com/substack/js-traverse),
+and [bufferlist](http://github.com/substack/node-bufferlist),
 which are all on npm and will be automatically fetched by `npm install dnode`.
 You can also fetch them from github too:
 
