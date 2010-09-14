@@ -1,0 +1,19 @@
+<script type="text/javascript" src="/dnode.js"></script>
+<script type="text/javascript">
+    var bytes = 0;
+    
+    DNode.connect(function (remote, conn) {
+        remote.emitter.subscribe(function (em) {
+            em.on('data', function (buf) {
+                bytes += buf.length;
+                document.getElementById("stats").innerHTML = bytes;
+            });
+        });
+        
+        //conn.on('end', function () {
+        //    console.log('end!');
+        //});
+    });
+</script>
+
+<div id="stats"></div>
