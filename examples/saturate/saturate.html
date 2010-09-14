@@ -35,7 +35,8 @@
         
         conn.on('timeout', function () {
             ping.style.color = 'red';
-            conn.reconnect(function () {
+            conn.reconnect(1000, function f (err) {
+                if (err) { console.log(err); conn.reconnect(1000, f) }
                 ping.style.color = 'black';
             });
         });
