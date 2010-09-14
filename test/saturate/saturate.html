@@ -1,7 +1,7 @@
 <script type="text/javascript" src="/dnode.js"></script>
 <script type="text/javascript">
     window.onload = function () {
-        DNode.connect(function (remote, conn) {
+        DNode.connect({ pulse : 5000 }, function (remote, conn) {
             var bytes = 0;
             
             remote.emitter.subscribe(function (em) {
@@ -11,8 +11,12 @@
                 });
             });
             
+            conn.on('pulse', function () {
+                document.getElementById("stats").style.color = 'red';
+            });
+            
             conn.on('end', function () {
-                console.log('end!');
+                document.getElementById("stats").style.color = 'rgb(200,200,200)';
             });
         });
     };

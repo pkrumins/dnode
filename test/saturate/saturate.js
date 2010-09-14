@@ -32,7 +32,7 @@ DNode(function (client, conn) {
         console.log(conn.id + ' disconnected!');
     });
 }).listen(httpServer, {
-    transports : 'websocket xhr-multipart xhr-polling htmlfile'.split(/\s+/),
+    transports : 'websocket xhr-multipart xhr-polling htmlfile'.split(/\s+/)
 });
 
 setInterval(function () {
