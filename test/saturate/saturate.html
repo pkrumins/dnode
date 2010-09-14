@@ -1,25 +1,50 @@
 <script type="text/javascript" src="/dnode.js"></script>
 <script type="text/javascript">
     window.onload = function () {
-        DNode.connect({ pulse : 5000 }, function (remote, conn) {
-            var bytes = 0;
-            
-            remote.emitter.subscribe(function (em) {
-                em.on('data', function (buf) {
-                    bytes += buf.length;
-                    document.getElementById("stats").innerHTML = bytes;
-                });
-            });
-            
-            conn.on('pulse', function () {
-                document.getElementById("stats").style.color = 'red';
-            });
-            
-            conn.on('end', function () {
-                document.getElementById("stats").style.color = 'rgb(200,200,200)';
+        DNode.connect({ ping : 5000, timeout : 2000 }, session);
+    };
+    
+    function session (remote, conn) {
+        var bytes = 0;
+        var stats = document.getElementById("stats");
+        var unit = document.getElementById("unit");
+        var ping = document.getElementById("ping");
+        
+        remote.emitter.subscribe(function (em) {
+            em.on('data', function (buf) {
+                bytes += buf.length;
+                if (bytes > 1e6) u = 1e6;
+                else if (bytes > 1e3) u = 1e3;
+                else u = 1;
+                
+                var x = bytes / u;
+                var d = (x - Math.floor(x)).toString().replace(/^0\./, '');
+                stats.innerHTML = Math.floor(x) + '.'
+                    + d.slice(0,2) + '00'.slice(d.length);
+                unit.innerHTML = { 1e6 : 'M', 1e3 : 'K', 1 : 'B' }[u];
             });
         });
-    };
+        
+        conn.on('ping', function (elapsed) {
+            ping.innerHTML = elapsed;
+        });
+        
+        conn.on('timeout', function () {
+            ping.style.color = 'red';
+        });
+        
+        conn.on('end', function () {
+            stats.style.color = 'rgb(200,200,200)';
+        });
+    }
 </script>
 
-<div id="stats">0</div>
+<div>
+    <span id="stats">0</span>
+    <span id="unit">bytes</span>
+    transferred
+</div>
+
+<div>
+    ping <span id="ping">X</span> milliseconds
+</div>

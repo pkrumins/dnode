@@ -36,7 +36,7 @@ DNode(function (client, conn) {
 });
 
 setInterval(function () {
-    var n = Math.floor(Math.random() * 50000);
+    var n = Math.floor(Math.random() * 5e4);
     var buf = new Buffer(n);
-    em.emit('data', buf);
-}, 10);
+    em.emit('data', buf.toString());
+}, 50);
