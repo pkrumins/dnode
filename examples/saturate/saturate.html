@@ -4,11 +4,15 @@
         DNode.connect({ ping : 5000, timeout : 2000 }, session);
     };
     
+    var bytes = 0;
+    
     function session (remote, conn) {
-        var bytes = 0;
         var stats = document.getElementById("stats");
         var unit = document.getElementById("unit");
         var ping = document.getElementById("ping");
+        
+        var connections = document.getElementById("connections");
+        connections.innerHTML = (Number(connections.innerHTML) + 1).toString();
         
         remote.emitter.subscribe(function (em) {
             em.on('data', function (buf) {
@@ -31,6 +35,9 @@
         
         conn.on('timeout', function () {
             ping.style.color = 'red';
+            conn.reconnect(function () {
+                ping.style.color = 'black';
+            });
         });
         
         conn.on('end', function () {
@@ -47,4 +54,8 @@
 
 <div>
     ping <span id="ping">X</span> milliseconds
+</div>
+
+<div>
+    <span id="connections">0</span> connections
 </div>
