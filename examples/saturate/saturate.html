@@ -33,16 +33,27 @@
             ping.innerHTML = elapsed;
         });
         
+        function reconnect () {
+            conn.reconnect(1000, function (err) {
+                if (err) {
+                    if (console) console.log(err);
+                    reconnect();
+                }
+                else {
+                    ping.style.color = 'black';
+                    stats.style.color = 'black';
+                }
+            });
+        }
+        
         conn.on('timeout', function () {
             ping.style.color = 'red';
-            conn.reconnect(1000, function f (err) {
-                if (err) { console.log(err); conn.reconnect(1000, f) }
-                ping.style.color = 'black';
-            });
+            reconnect();
         });
         
         conn.on('end', function () {
             stats.style.color = 'rgb(200,200,200)';
+            reconnect();
         });
     }
 </script>
