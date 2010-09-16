@@ -20,4 +20,20 @@ function emTest () {
     });
     em.emit('moo', 3);
     setTimeout(function () { assert.ok(mooed) }, 0);
+    
+    mooed = false;
+    function f () { assert.ok(false) }
+    em.on('moo', f);
+    em.removeListener('moo', f);
+    
+    em.emit('moo', 3);
+    setTimeout(function () {
+        assert.ok(mooed)
+        
+        mooed = false;
+        em.on('moo', f);
+        em.removeAllListeners('moo');
+        em.emit('moo');
+        setTimeout(function () { assert.ok(!mooed) }, 0);
+    }, 0);
 }
