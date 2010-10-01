@@ -234,6 +234,7 @@ All messages have this format:
 * method :: String or Integer
 * arguments :: Array
 * callbacks :: Object
+* links :: Array
 
 When the method field is a string, it refers to a named method at the remote.
 When the method field is an integer, it refers to an anonymous function
@@ -253,6 +254,9 @@ field so its path is just [ 3 ].
 
 The contents of the arguments array at a callback location is not used, so it
 may contain any value or may be left undefined.
+
+The Array and Object fields can be omitted, in which case they default to [] and
+{}.
 
 Methods
 -------
@@ -295,3 +299,11 @@ This example creates a link to the first argument within the first argument's
 
 Note that links need not necessarily be cyclic, they can just more efficiently
 encode duplicate data, for instance.
+
+Other Languages
+===============
+
+These libraries implement the DNode protocol too so you can make RPC calls
+between scripts written in different languages.
+
+* [dnode-perl](http://github.com/substack/dnode-perl) (experimental)

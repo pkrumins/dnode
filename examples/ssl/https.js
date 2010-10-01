@@ -41,7 +41,7 @@ var httpsServer = http.createServer(function (req,res) {
     }
 });
 httpsServer.setSecure(cert);
-httpsServer.listen(8020);
+httpsServer.listen(8021);
 
 // share an object with DNode over socket.io on top of the http server
 DNode(function (client) {
@@ -57,6 +57,7 @@ DNode(function (client) {
     };
 }).listen({
     protocol : 'socket.io',
+    secure : true,
     server : httpsServer,
     transports : 'websocket xhr-multipart xhr-polling htmlfile'.split(/\s+/),
 });
