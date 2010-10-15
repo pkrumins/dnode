@@ -290,12 +290,17 @@ structure from the root, as in the "callbacks" field.
 Example of a method call with cyclic references:
     {
         "method" : 12,
-        "arguments" : [ { "a" : 5, "b" : [ { "c" : 5 } ] ],
+        "arguments" : [ { "a" : 5, "b" : [ { "c" : 5 } ] } ],
         "callbacks" : {},
         "links" : [ { "from" : [ 0 ], "to" : [ 0, "b", 1 ] } ]
     }
 This example creates a link to the first argument within the first argument's
-"b" key's second element.
+"b" key's second element. The previous data structure could be generated from
+the following javascript where `fn` comes from the remote:
+
+    var data = { a : 5, b : [ { c : 5 } ] };
+    data.b.push(data);
+    fn(data);
 
 Note that links need not necessarily be cyclic, they can just more efficiently
 encode duplicate data, for instance.
