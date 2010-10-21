@@ -56,7 +56,7 @@ exports['remote emitters'] = function (assert) {
             
             setTimeout(function () {
                 remote.moo();
-            }, 100);
+            }, 1000);
         });
     });
     
@@ -65,6 +65,6 @@ exports['remote emitters'] = function (assert) {
         assert.ok(got.tied[0]);
         assert.ok(got.tied[1]);
         server.end();
-    }, 200);
+    }, 2000);
 };
 
