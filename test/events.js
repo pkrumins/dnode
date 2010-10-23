@@ -24,7 +24,7 @@ exports['remote emitters'] = function (assert) {
         return moo.attach(conn);
     }).listen(port);
     
-    var got = { moo : false, tied : [ false, false ] };
+    var got = { moo : 0, tied : [ false, false ] };
     
     server.on('ready', function () {
         DNode.connect(port, function (remote) {
@@ -33,8 +33,8 @@ exports['remote emitters'] = function (assert) {
             });
             
             remote.subscribe(function (ev) {
-                ev.on('moo', function () {
-                    got.moo = true;
+                ev.once('moo', function () {
+                    got.moo ++;
                 });
             });
             
@@ -61,7 +61,7 @@ exports['remote emitters'] = function (assert) {
     });
     
     setTimeout(function () {
-        assert.ok(got.moo);
+        assert.equal(got.moo, 1);
         assert.ok(got.tied[0]);
         assert.ok(got.tied[1]);
         server.end();
