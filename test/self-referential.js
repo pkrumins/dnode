@@ -11,6 +11,10 @@ exports.simple = function (assert) {
         }
     ,   print : function (n,reply) {
 				console.log(n);
+				assert.strictEqual(n[0],1)
+				assert.strictEqual(n[1],2)
+				assert.strictEqual(n[2],3)
+				assert.strictEqual(n[3],n)
             reply(sys.inspect(n));
         }
     }).listen(port);
@@ -20,16 +24,12 @@ exports.simple = function (assert) {
         DNode.connect(port, function (remote, conn) {
 	    	console.log("\nCLIENT CONNECT\n");
             assert.equal(conn.stream.remoteAddress, '127.0.0.1');
-            var args = {
-            	number: 5
-            ,	func: function hello(){}
-            }
-            remote.timesTen(args, function (m) {
-                assert.equal(m, 50, '5 * 10 == 50');
-                /*remote.timesTen(m, function (n) {
-                    assert.equal(n, 500, '50 * 10 == 500');
-                    server.close();
-                });*/
+            var args = [1,2,3]
+            args.push(args)
+				
+            remote.print(args, function (m) {
+					console.log(args);
+
                 server.close();
 
             });
