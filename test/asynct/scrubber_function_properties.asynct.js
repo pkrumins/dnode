@@ -1,5 +1,5 @@
-er = require('../../lib/scrubber')
-,	sys = require('sys');
+var Scrubber = require(__dirname + '/../../lib/scrubber');
+var sys = require('sys');
 
 exports['test function properties'] = function (test){
 	s = new Scrubber();
