@@ -220,6 +220,24 @@ For the most part, when a method supplies a single return value, the callback
 function should be the method's last argument, like blocks in ruby.
 Incidentally, this module was inspired by ruby's DRb.
 
+Error Handling
+==============
+DNode emits `localError` events through the connection object when an exception
+is thrown on the local side and `remoteError` when the remote side throws an
+uncaught exception.
+
+    Dnode(function (client, conn) {
+        conn.on('localError', function (err) {
+            console.log('Local Error: ' + err);
+        });
+        conn.on('remoteError', function (err) {
+            console.log('Remote Error: ' + err);
+        });
+    }).connect(port);
+
+The stack trace is obscured for remoteErrors to avoid leaking sensitive
+information.
+
 Protocol
 ========
 
@@ -312,13 +330,4 @@ These libraries implement the DNode protocol too so you can make RPC calls
 between scripts written in different languages.
 
 * [dnode-perl](http://github.com/substack/dnode-perl) (experimental)
-
-Error Handling
-==============
-DNode emits 'error' events, and 'remoteError' when a error occurs at the other end.
-	client = Dnode().connect(port)
-	client.on('error',function (err){})
-	client.on('remoteError',function (err){})
-
-error messages are on by default. turn off by passing options to connect or listen:
-	Dnode().connect(port, {printErrors: false, printRemoteErrors: false})
+* [dnode-ruby](http://github.com/substack/dnode-ruby) (experimental)
