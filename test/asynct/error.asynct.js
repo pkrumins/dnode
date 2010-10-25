@@ -52,7 +52,7 @@ function setupServerClient(server,client,connected,errors){
 	group.server = DNode(server).listen(port,{printErrors: errors, printRemoteErrors: errors})
 	group.client = DNode(client)
 	group.server.on('ready',function(){
-		 group.client.connect(port,connected,{printErrors: errors, printRemoteErrors: errors})
+		 group.client.connect(port,connected,{printErrors: errors})
 	});
 	return group;
 }
@@ -188,10 +188,10 @@ exports['test call remoteError without error method'] = function (test){
 		 
 }
 /*
-	//clear error hander:
+	clear error hander:
 	server.removeAllListeners('error')
-	//then all errors should throw.
-	//which should be caught by test.uncaughtExceptionHandler
+	then all errors should throw.
+	which should be caught by test.uncaughtExceptionHandler
 */
 exports['test throw error with no listeners'] = function (test){
 
@@ -215,10 +215,11 @@ exports['test throw error with no listeners'] = function (test){
 		test.deepEqual(err,theError)
 		check('serverError');
 	}
-	//of course since the error crashes the server now, the error never gets through to the client.
-	//should I actually test for this?
-	//what i'm really testing is how async_testing works with dnode.
-
+	/*
+	of course since the error crashes the server now, the error never gets through to the client.
+	should I actually test for this?
+	what i'm really testing is how async_testing works with dnode.
+   */
     setTimeout(function () {
 			check();
         group.server.end();
