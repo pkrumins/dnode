@@ -16,9 +16,7 @@ exports.simple = function (assert) {
     }).listen(port);
     
     server.on('ready', function () {
-    	console.log("SERVER READY\n");
         DNode.connect(port, function (remote, conn) {
-	    	console.log("\nCLIENT CONNECT\n");
             assert.equal(conn.stream.remoteAddress, '127.0.0.1');
             var args = {
             	number: 5
@@ -26,10 +24,6 @@ exports.simple = function (assert) {
             }
             remote.timesTen(args, function (m) {
                 assert.equal(m, 50, '5 * 10 == 50');
-                /*remote.timesTen(m, function (n) {
-                    assert.equal(n, 500, '50 * 10 == 500');
-                    server.close();
-                });*/
                 server.close();
 
             });
