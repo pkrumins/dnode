@@ -1,11 +1,7 @@
 <script src="/dnode.js" type="text/javascript"></script>
 <script type="text/javascript">
     window.onload = function () {
-        DNode({
-            error : function (err) {
-                console.log(err);
-            }
-        }).connect(function (remote) {
+        DNode.connect(function (remote) {
             remote.cat(function (says) {
                 document.getElementById('says').innerHTML = says;
             });
