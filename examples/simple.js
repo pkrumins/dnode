@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-var DNode = require('dnode');
+var DNode = require('../lib/dnode');
 var sys = require('sys');
 
 // server-side:
@@ -8,6 +8,7 @@ var server = DNode({
     moo : function (reply) { reply(100) },
     sTimesTen : DNode.sync(function (n) { return n * 10 }),
 }).listen(6060);
+
 
 // client-side:
 server.on('ready', function () {

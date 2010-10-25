@@ -312,3 +312,13 @@ These libraries implement the DNode protocol too so you can make RPC calls
 between scripts written in different languages.
 
 * [dnode-perl](http://github.com/substack/dnode-perl) (experimental)
+
+Error Handling
+==============
+DNode emits 'error' events, and 'remoteError' when a error occurs at the other end.
+	client = Dnode().connect(port)
+	client.on('error',function (err){})
+	client.on('remoteError',function (err){})
+
+error messages are on by default. turn off by passing options to connect or listen:
+	Dnode().connect(port, {printErrors: false, printRemoteErrors: false})

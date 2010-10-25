@@ -30,6 +30,8 @@ exports.simple = function (assert) {
                         assert.equal(err.name, refErr.name);
                         assert.equal(err.message, refErr.message);
                         assert.equal(err.type, refErr.type);
+         //assert.ok(false,"WHAT HAPPENS TO THIS ERROR?");
+         //it's caught and printed off but the error doesn't get through to the test framework.
                     }
                 }
             }

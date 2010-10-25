@@ -41,7 +41,7 @@ function ChatServer (client, con) {
         emitter.emit('joined', client.name);
         names[client.name] = 1;
     });
-    
+
     con.on('end', function () {
         emitter.removeListener('joined', client.joined);
         emitter.removeListener('said', client.said);
