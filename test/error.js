@@ -4,22 +4,25 @@ var sys = require('sys');
 exports.simple = function (assert) {
     var port = Math.floor(Math.random() * 40000 + 10000);
     
-    var server = DNode({
-        one : function () {
+    var server = DNode(function (remote) {
+        this.one = function () {
             throw 'string throw'
-        },
-        two : function () {
+        };
+        
+        this.two = function () {
             undefined.name
-        },
-        error : function (err) {
-            console.log('err = ' + sys.inspect(err));
-        },
-    }).listen(port, { printErrors : false });
+        };
+        
+        this.three = function () {
+            remote.pow();
+        };
+    }).listen(port);
     
     var errNum = 0;
+    var caughtLocal = false;
     server.on('ready', function () {
-        DNode({
-            error : function (err) {
+        DNode(function (client, conn) {
+            conn.on('remoteError', function (err) {
                 errNum ++;
                 if (errNum == 1) {
                     assert.equal(err, 'string throw');
@@ -30,19 +33,28 @@ exports.simple = function (assert) {
                         assert.equal(err.name, refErr.name);
                         assert.equal(err.message, refErr.message);
                         assert.equal(err.type, refErr.type);
-         //assert.ok(false,"WHAT HAPPENS TO THIS ERROR?");
-         //it's caught and printed off but the error doesn't get through to the test framework.
                     }
                 }
-            }
+            });
+            
+            conn.on('localError', function (err) {
+                assert.equal(err, 'Local error');
+                caughtLocal = true;
+            });
+            
+            this.pow = function () {
+                throw 'Local error';
+            };
         }).connect(port, function (remote) {
             remote.one();
             remote.two();
+            remote.three();
         });
     });
     
     setTimeout(function () {
         assert.equal(errNum, 2);
+        assert.ok(caughtLocal);
         server.end();
     }, 200);
 };
