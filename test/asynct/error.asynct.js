@@ -57,7 +57,7 @@ function setupServerClient(server,client,connected,errors){
 	return group;
 }
 
-function serverThrowsTwoErrors (){
+function serverThrowsTwoErrors2 (){
 	return {
 			one : function () {
 	         throw 'string throw'
@@ -70,15 +70,29 @@ function serverThrowsTwoErrors (){
 	     }
 	}
 }
+function serverThrowsTwoErrors2 (errHandler){
+	return function (client,conn){
+	   conn.on('localError',errHandler)
+		this.one = function () {
+	         throw 'string throw'
+	     }
+		this.two = function () {
+	         undefined.name
+	     }
+		this.callback = function (arg,cb){
+	     		cb(arg);
+	     }
+	}
+}
 
 
 /*~~~~~~~~~~~~~ TESTS ~~~~~~~~~~~~~~~~~~*/
 
-exports['test emit error'] = function (test) {
+exports['test emit error2'] = function (test) {
   
    var errNum = 0,clientErrNum = 0;
 
-	var group = setupServerClient(serverThrowsTwoErrors (),{},connected)
+	var group = setupServerClient(serverThrowsTwoErrors2 (serverErrorHandler),clientFunc,connected)
 	, check = checklist(['Error','string throw','TypeError'],test)
 	function connected(remote){
       remote.one();
@@ -98,15 +112,18 @@ exports['test emit error'] = function (test) {
 		*/
 	}
 
-   group.client.on('error',clientErrorHandler);
+//   group.client.on('localError',clientErrorHandler);
+      function clientFunc(server,conn){
+         conn.on('localError', clientErrorHandler);
+		   function clientErrorHandler (err){
+			     test.equal(err.name, "Error");
+			     test.equal(err.message, "ERROR MESSAGE");
+			     check("Error")
+     		 }
 
-		function clientErrorHandler (err){
-			  test.equal(err.name, "Error");
-			  test.equal(err.message, "ERROR MESSAGE");
-			  check("Error")
-  		 }
+      }
 
-  	group.server.on('error',serverErrorHandler);
+//  	group.server.on('localError',serverErrorHandler);
   	
 		function serverErrorHandler (err){
 		    check(err.name || err)
@@ -121,7 +138,7 @@ exports['test emit error'] = function (test) {
 };
 
 //test remote errors
-
+/*
 exports['test call error for remoteError'] = function (test){
 
 	var check = checklist(['error','remoteError'],test)
@@ -155,7 +172,7 @@ exports['test call error for remoteError'] = function (test){
 	  group.server.end();
 	}, 500);
 }
-
+*/
 exports['test call remoteError without error method'] = function (test){
 
 	var errNum = 0
@@ -187,44 +204,14 @@ exports['test call remoteError without error method'] = function (test){
 		 }, 500);
 		 
 }
+
+
 /*
 	clear error hander:
 	server.removeAllListeners('error')
 	then all errors should throw.
 	which should be caught by test.uncaughtExceptionHandler
 */
-exports['test throw error with no listeners'] = function (test){
-
-	var errNum = 0
-	,	remoteErrNum = 0
-	,	check = checklist(['serverError'],test)
-	,	theError = new Error ('INSTENSIONAL ERROR ON SERVER')
-	,	serverObj =
-		{	makeError: 
-			function (n,cb){
-				throw theError
-			}
-		}
-	,	clientObj = {}
-	,	group = setupServerClient(serverObj,clientObj,connected,false);
-	function connected (server) {
-		server.makeError(100)
-	}
-	group.server.removeAllListeners('error') // server errors should throw now.
-	test.uncaughtExceptionHandler = function (err){
-		test.deepEqual(err,theError)
-		check('serverError');
-	}
-	/*
-	of course since the error crashes the server now, the error never gets through to the client.
-	should I actually test for this?
-	what i'm really testing is how async_testing works with dnode.
-   */
-    setTimeout(function () {
-			check();
-        group.server.end();
-    }, 500);
-}
 
 if (module == require.main) {
   require('async_testing').run(__filename, process.ARGV);
