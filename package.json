@@ -1,6 +1,6 @@
 {
     "name" : "dnode",
-    "version" : "0.3.7",
+    "version" : "0.3.8",
     "description" : "Asynchronous, bidirectional remote method calls with transparently wrapped callbacks",
     "modules" : {
         "index" : "./lib/dnode",
@@ -17,7 +17,8 @@
     "dependencies" : {
         "socket.io" : ">=0.5.1",
         "lazy" : ">=1.0.1",
-        "traverse" :">=0.0.8"
+        "traverse" : ">=0.0.8",
+        "connect" : ">=0.2.0"
     },
     "engine" : ["node >=0.1.100"]
 }
