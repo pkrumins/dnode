@@ -1,49 +1,30 @@
 #!/usr/bin/env node
-// Note: doesn't seem to work
-
-var DNode = require('dnode');
-var sys = require('sys');
-var fs = require('fs');
-var http = require('http');
 
 var crypto = require('crypto');
+var fs = require('fs');
+
 try {
-    var privateKey = fs.readFileSync(__dirname + '/privatekey.pem', 'ascii');
-    var certificate = fs.readFileSync(__dirname + '/certificate.pem', 'ascii');
+    var cert = crypto.createCredentials({
+        key : fs.readFileSync(__dirname + '/privatekey.pem', 'ascii'),
+        cert : fs.readFileSync(__dirname + '/certificate.pem', 'ascii'),
+    });
 }
 catch (e) {
-    sys.puts('# {privatekey,certificate}.pem missing, do this first:');
-    sys.puts('openssl genrsa -out privatekey.pem 1024');
-    sys.puts('openssl req -new -key privatekey.pem -out certrequest.csr');
-    sys.puts('openssl x509 -req -in certrequest.csr '
+    console.log('# {privatekey,certificate}.pem missing, do this first:');
+    console.log('openssl genrsa -out privatekey.pem 1024');
+    console.log('openssl req -new -key privatekey.pem -out certrequest.csr');
+    console.log('openssl x509 -req -in certrequest.csr '
         + '-signkey privatekey.pem -out certificate.pem');
     process.exit();
 }
 
-var cert = crypto.createCredentials({
-    key : privateKey,
-    cert : certificate,
-});
+var connect = require('connect');
+var https = connect.createServer();
+https.use(connect.staticProvider(__dirname + '/static'));
+https.setSecure(cert);
+https.listen(8020);
 
-// load the html page and the client-side javascript into memory
-var html = fs.readFileSync(__dirname + '/https.html');
-var js = require('dnode/web').source();
-
-// https server to serve pages and for socket.io transport
-var httpsServer = http.createServer(function (req,res) {
-    if (req.url == '/dnode.js') {
-        res.writeHead(200, { 'Content-Type' : 'text/javascript' });
-        res.end(js);
-    }
-    else {
-        res.writeHead(200, { 'Content-Type' : 'text/html' });
-        res.end(html);
-    }
-});
-httpsServer.setSecure(cert);
-httpsServer.listen(8021);
-
-// share an object with DNode over socket.io on top of the http server
+var DNode = require('dnode');
 DNode(function (client) {
     this.timesTen = function (n,f) { f(n * 10) };
     this.whoAmI = function (reply) {
@@ -55,11 +36,6 @@ DNode(function (client) {
             );
         })
     };
-}).listen({
-    protocol : 'socket.io',
-    secure : true,
-    server : httpsServer,
-    transports : 'websocket xhr-multipart xhr-polling htmlfile'.split(/\s+/),
-});
+}).listen(https, { secure : true });
 
-sys.puts('https://localhost:8020/');
+console.log('https://localhost:8020/');
