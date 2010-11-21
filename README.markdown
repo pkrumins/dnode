@@ -41,6 +41,11 @@ Or check out the repository and link your development copy:
     npm link .
     git clone http://github.com/LearnBoost/Socket.IO.git lib/vendor/web/Socket.IO
 
+The last `git clone` above is for the Socket.IO client libraries, which are
+already included in the npm version. In web mode, all of the necessary client
+libraries are hosted automatically at `/dnode.js` under connect and express, or
+you can load the source as a string by doing `require('dnode/web').source()`.
+
 DNode depends on
 [socket.io](http://github.com/LearnBoost/Socket.IO-node),
 [traverse](http://github.com/substack/js-traverse),
@@ -51,10 +56,6 @@ You can also fetch them from github too:
     git clone http://github.com/LearnBoost/Socket.IO-node.git
     git clone http://github.com/substack/js-traverse.git
     git clone http://github.com/pkrumins/node-lazy.git
-
-For the require('dnode/web') stuff to work, you'll need Socket.IO (different
-from Socket.IO-node), which is what the second `git clone` in the checkout
-instructions is all about. Submodules are hard.
 
 Examples
 ========
@@ -79,23 +80,6 @@ Client:
             sys.puts(res); // 50, computation executed on the server
         });
     });
-
-Synchronous Function Example
------------------------------
-
-The DNode.sync() function adds a callback as the last argument to a function for
-functions that return explicitly. This callback is called with the return value.
-
-Server:
-
-    var DNode = require('dnode');
-    DNode({
-        timesTen : DNode.sync(function (n) {
-            return n * 10;
-        })
-    }).listen(6060);
-
-This code is functionally equivalent to the server code in the previous example.
 
 Bidirectional Communication Example
 -----------------------------------
@@ -145,68 +129,44 @@ To make DNode easier to deploy, all the necessary browser-side code
 including [Socket.io](http://github.com/LearnBoost/Socket.IO)
 is available by calling `require('dnode/web').source()` on the server-side.
 
-Here's a complete web example:
+Here's a complete web example from `examples/web`:
 
-### web.html
+### examples/web/web.js
 
-    <script type="text/javascript" src="/dnode.js"></script>
-    <script type="text/javascript">
-        DNode({
-            name : function (f) { f('Mr. Spock') },
-        }).connect(function (remote) {
-            remote.timesTen(10, function (n) {
-                document.getElementById("result").innerHTML = String(n);
-            });
-            remote.whoAmI(function (name) {
-                document.getElementById("name").innerHTML = name;
-            });
-        });
-    </script>
-    
-    <p>timesTen(10) == <span id="result">?</span></p>
-    <p>My name is <span id="name">?</span>.</p>
+    #!/usr/bin/env node
+    var connect = require('connect');
 
-### web.js
+    var server = connect.createServer(
+        connect.staticProvider(__dirname)
+    ).listen(6857);
+    console.log('http://localhost:6857/');
 
     var DNode = require('dnode');
-    var sys = require('sys');
-    var fs = require('fs');
-    var http = require('http');
-
-    // load the html page and the client-side javascript into memory
-    var html = fs.readFileSync(__dirname + '/web.html');
-    var js = require('dnode/web').source();
-
-    // simple http server to serve pages and for socket.io transport
-    var httpServer = http.createServer(function (req,res) {
-        if (req.url == '/dnode.js') {
-            res.writeHead(200, { 'Content-Type' : 'text/javascript' });
-            res.end(js);
-        }
-        else {
-            res.writeHead(200, { 'Content-Type' : 'text/html' });
-            res.end(html);
-        }
-    });
-    httpServer.listen(6061);
-
-    // share an object with DNode over socket.io on top of the http server
     DNode(function (client) {
-        this.timesTen = function (n,f) { f(n * 10) };
-        this.whoAmI = function (reply) {
-            client.name(function (name) {
-                reply(name
-                    .replace(/Mr\.?/,'Mister')
-                    .replace(/Ms\.?/,'Miss')
-                    .replace(/Mrs\.?/,'Misses')
-                );
-            })
+        this.cat = function (cb) {
+            cb('meow');
         };
-    }).listen({
-        protocol : 'socket.io',
-        server : httpServer,
-        transports : 'websocket xhr-multipart xhr-polling htmlfile'.split(/\s+/),
-    });
+    }).listen(server);
+
+### examples/web/index.html
+
+    <html>
+    <head>
+    <script src="/dnode.js" type="text/javascript"></script>
+    <script type="text/javascript">
+        window.onload = function () {
+            DNode.connect(function (remote) {
+                remote.cat(function (says) {
+                    document.getElementById('says').innerHTML = says;
+                });
+            });
+        };
+    </script>
+    </head>
+    <body>
+    The cat says <span id="says">?</span>.
+    </body>
+    </html>
 
 Also note that .listen() returns "this", so you can bind multiple listeners to
 the same DNode instance by chaining .listen() calls. This is useful when
