@@ -121,13 +121,18 @@ Client:
         });
     });
 
-Bidirectional Browser Example
------------------------------
+Browser Example
+---------------
 
 DNode's browser-based interface works just like the node.js version.
 To make DNode easier to deploy, all the necessary browser-side code
 including [Socket.io](http://github.com/LearnBoost/Socket.IO)
-is available by calling `require('dnode/web').source()` on the server-side.
+is bundled up at `/dnode.js` when you use connect or express. You can configure
+where this bundled source is mounted by passing in a `route` parameter to
+`listen()`.
+
+You can also get the bundled client source yourself by calling
+`require('dnode/web').source()`.
 
 Here's a complete web example from `examples/web`:
 
