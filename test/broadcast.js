@@ -68,5 +68,5 @@ exports.broadcast = function (assert) {
             sys.inspect(recv[2]),
             "#2 didn't get the messages"
         );
-    }, 1000);
+    }, 1500);
 };
