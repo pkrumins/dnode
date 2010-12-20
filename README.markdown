@@ -189,19 +189,22 @@ Error Handling
 ==============
 DNode emits `localError` events through the connection object when an exception
 is thrown on the local side and `remoteError` when the remote side throws an
-uncaught exception.
+uncaught exception. It doesn't emit `error` because that would crash the service
+and that's probably not what you want.
 
-    Dnode(function (client, conn) {
-        conn.on('localError', function (err) {
-            console.log('Local Error: ' + err);
-        });
-        conn.on('remoteError', function (err) {
-            console.log('Remote Error: ' + err);
-        });
-    }).connect(port);
+    var client = Dnode({ /* ... */ }).connect(port);
+    client.on('localError', function (err) {
+        console.log('Local Error: ' + err);
+    });
+    client.on('remoteError', function (err) {
+        console.log('Remote Error: ' + err);
+    });
 
 The stack trace is obscured for remoteErrors to avoid leaking sensitive
 information.
+
+By default on nextTick a `localError` is registered that prints a stack trace if
+no listeners have been bound.
 
 Protocol
 ========
