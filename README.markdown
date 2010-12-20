@@ -36,6 +36,7 @@ Silly simple thing
 Server:
 
     var dnode = require('dnode');
+    
     dnode({
         decify : function (n,f) { f(n * 10) }
     }).listen(6060);
@@ -44,7 +45,7 @@ Client:
 
     var dnode = require('dnode');
     
-    DNode.connect(6060, function (remote) {
+    dnode.connect(6060, function (remote) {
         remote.decify(5, function (n) {
             console.log(n); // prints 50, woo!
         });
@@ -99,8 +100,8 @@ web.js:
     var server = connect.createServer();
     server.use(connect.staticProvider(__dirname));
     
-    var DNode = require('dnode');
-    DNode(function (client) {
+    var dnode = require('dnode');
+    dnode(function (client) {
         this.cat = function (cb) {
             cb('meow');
         };
@@ -130,7 +131,7 @@ index.html:
     </html>
 
 Also note that .listen() returns "this", so you can bind multiple listeners to
-the same DNode instance by chaining .listen() calls. This is useful when
+the same dnode instance by chaining .listen() calls. This is useful when
 socket.io clients need to access the same service as regular node.js network
 sockets.
 
@@ -146,7 +147,7 @@ Or check out the repository and link your development copy:
     git clone http://github.com/substack/dnode.git
     cd dnode && npm link
 
-DNode depends on
+dnode depends on
 [socket.io](http://github.com/LearnBoost/Socket.IO-node),
 [traverse](http://github.com/substack/js-traverse),
 and [lazy](http://github.com/pkrumins/node-lazy),
@@ -168,7 +169,7 @@ Incidentally, this module was inspired by ruby's DRb.
 
 Error Handling
 ==============
-DNode emits `localError` events through the connection object when an exception
+dnode emits `localError` events through the connection object when an exception
 is thrown on the local side and `remoteError` when the remote side throws an
 uncaught exception. It doesn't emit `error` because that would crash the service
 and that's probably not what you want.
@@ -190,7 +191,7 @@ no listeners have been bound.
 Protocol
 ========
 
-DNode uses newline-terminated JSON messages. Each side of the connection may
+dnode uses newline-terminated JSON messages. Each side of the connection may
 request that a method be invoked on the other side.
 
 Data Fields
@@ -275,7 +276,7 @@ encode duplicate data, for instance.
 Other Languages
 ===============
 
-These libraries implement the DNode protocol too so you can make RPC calls
+These libraries implement the dnode protocol too so you can make RPC calls
 between scripts written in different languages.
 
 * [dnode-perl](http://github.com/substack/dnode-perl)
