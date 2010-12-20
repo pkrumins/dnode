@@ -1,99 +1,65 @@
-DNode
+dnode
 =====
 
-DNode is a node.js library for asynchronous, bidirectional remote method
-invocation across the network. Transports for network sockets and
-websocket-style socket.io connections are available.
+With dnode you can call functions defined on remote servers as if they were
+defined locally. No XML, no stubs, no schemas, no cruft layers.
+Just throw an object at `dnode()` and then `.connect(port)` or `.listen(port)`.
 
-A DNode server listens for incoming connections and offers up an object to
-clients that connect. Clients can call any of the methods that the server hosts
-and clients can offer their own methods for the server to call.
+This trick works over plain old tcp sockets or over websockets
+courtesy of [socket.io](http://github.com/LearnBoost/Socket.IO-node).
 
-DNode uses continuation-passing-style to make return values available: the
-server calls a function supplied to it by the client as an argument. These
-functions execute on the client side with the arguments provided by the server.
-Functions may be nested arbitrarily deeply in a method's arguments and can be
-called multiple times by the server.
+If you've used drb from ruby it's the same idea, except dnode is asynchronous
+and the wrapping happens recursively on result values too.
+This is sometimes called "remote method invocation" or 
 
-Or [as Simon Willison puts it](http://simonwillison.net/2010/Jul/11/dnode/)
-(awesomely):
+dnode is:
+    * bidirectional, so each side of the connection can call methods defined on
+        the other side
+    * asynchronous, so results are made available over the network link using
+        callbacks instead of 
 
-> Mind-bendingly clever. DNode lets you expose a JavaScript function so that it
-> can be called from another machine using a simple JSON-based network protocol.
-> That’s relatively straight-forward... but DNode is designed for asynchronous
-> environments, and so also lets you pass callback functions which will be
-> translated in to references and used to make remote method invocations back to
-> your original client. And to top it off, there’s a browser client library so
-> you can perform the same trick over a WebSocket between a browser and a
-> server.
-
-Installation
-============
-
-Using npm:
-
-    npm install dnode
-
-Or check out the repository and link your development copy:
-
-    git clone http://github.com/substack/dnode.git
-    cd dnode
-    npm link .
-    git clone http://github.com/LearnBoost/Socket.IO.git lib/vendor/web/Socket.IO
-
-The last `git clone` above is for the Socket.IO client libraries, which are
-already included in the npm version. In web mode, all of the necessary client
-libraries are hosted automatically at `/dnode.js` under connect and express, or
-you can load the source as a string by doing `require('dnode/web').source()`.
-
-DNode depends on
-[socket.io](http://github.com/LearnBoost/Socket.IO-node),
-[traverse](http://github.com/substack/js-traverse),
-and [lazy](http://github.com/pkrumins/node-lazy),
-which are all on npm and will be automatically fetched by `npm install dnode`.
-You can also fetch them from github too:
-
-    git clone http://github.com/LearnBoost/Socket.IO-node.git
-    git clone http://github.com/substack/js-traverse.git
-    git clone http://github.com/pkrumins/node-lazy.git
+The only catch is that you've got to write your methods in
+[continuation passing style](http://en.wikipedia.org/wiki/Continuation-passing_style).
+So instead of using `return` like this:
+    function foo () { return 555 }
+you call a function passed in as an argument
+    function foo (cb) { cb(555) }
+There are some very good technical reasons for enforcing this style, it's not
+just me being opinionated.
 
 Examples
 ========
 
-Client and Server
------------------
+Silly simple thing
+------------------
 
 Server:
 
-    var DNode = require('dnode');
-    DNode({
-        timesTen : function (n,f) { f(n * 10) }
+    var dnode = require('dnode');
+    dnode({
+        decify : function (n,f) { f(n * 10) }
     }).listen(6060);
  
 Client:
 
-    var DNode = require('dnode');
-    var sys = require('sys');
+    var dnode = require('dnode');
     
     DNode.connect(6060, function (remote) {
-        remote.timesTen(5, function (res) {
-            sys.puts(res); // 50, computation executed on the server
+        remote.decify(5, function (n) {
+            console.log(n); // prints 50, woo!
         });
     });
 
-Bidirectional Communication Example
------------------------------------
+Bidirectional
+-------------
 
-DNode clients are only clients in the sense that they initiate the connection.
-Clients can provide methods for the remote server to call just as the remote
-server provides methods for the client to call. The server can get at the
-client's methods by passing a constructor to DNode() that will be passed the
-client handle as the first argument. 
+Clients and servers aren't special in dnode.
+Each side of the link can provide methods to the other side.
  
 Server:
 
-    var DNode = require('dnode');
-    DNode(function (client) {
+    var dnode = require('dnode');
+    dnode(function (client) {
         // Poll the client's own temperature() in celsius and convert that value to
         // fahrenheit in the supplied callback
         this.clientTempF = function (cb) {
@@ -106,7 +72,8 @@ Server:
 
 Client:
 
-    DNode({
+    var dnode = require('dnode');
+    dnode({
         // Compute the client's temperature and stuff that value into the callback
         temperature : function (cb) {
             var degC = Math.round(20 + Math.random() * 10 - 5);
@@ -121,39 +88,28 @@ Client:
         });
     });
 
-Browser Example
----------------
+In the Browser
+--------------
 
-DNode's browser-based interface works just like the node.js version.
-To make DNode easier to deploy, all the necessary browser-side code
-including [Socket.io](http://github.com/LearnBoost/Socket.IO)
-is bundled up at `/dnode.js` when you use connect or express. You can configure
-where this bundled source is mounted by passing in a `route` parameter to
-`listen()`.
+You can make dnode connections in the browser too!
 
-You can also get the bundled client source yourself by calling
-`require('dnode/web').source()`.
+web.js:
 
-Here's a complete web example from `examples/web`:
-
-### examples/web/web.js
-
-    #!/usr/bin/env node
     var connect = require('connect');
-
-    var server = connect.createServer(
-        connect.staticProvider(__dirname)
-    ).listen(6857);
-    console.log('http://localhost:6857/');
-
+    var server = connect.createServer();
+    server.use(connect.staticProvider(__dirname));
+    
     var DNode = require('dnode');
     DNode(function (client) {
         this.cat = function (cb) {
             cb('meow');
         };
     }).listen(server);
+    
+    server.listen(6857);
+    console.log('http://localhost:6857/');
 
-### examples/web/index.html
+index.html:
 
     <html>
     <head>
@@ -177,6 +133,31 @@ Also note that .listen() returns "this", so you can bind multiple listeners to
 the same DNode instance by chaining .listen() calls. This is useful when
 socket.io clients need to access the same service as regular node.js network
 sockets.
+
+Installation
+============
+
+Using npm:
+
+    npm install dnode
+
+Or check out the repository and link your development copy:
+
+    git clone http://github.com/substack/dnode.git
+    cd dnode && npm link
+
+DNode depends on
+[socket.io](http://github.com/LearnBoost/Socket.IO-node),
+[traverse](http://github.com/substack/js-traverse),
+and [lazy](http://github.com/pkrumins/node-lazy),
+which are all on npm and will be automatically fetched when you `npm install
+dnode` or `npm link` in the project directory.
+
+You can also fetch them from github too:
+
+    git clone http://github.com/LearnBoost/Socket.IO-node.git
+    git clone http://github.com/substack/js-traverse.git
+    git clone http://github.com/pkrumins/node-lazy.git
 
 Conventions
 ===========
@@ -297,5 +278,23 @@ Other Languages
 These libraries implement the DNode protocol too so you can make RPC calls
 between scripts written in different languages.
 
-* [dnode-perl](http://github.com/substack/dnode-perl) (experimental)
-* [dnode-ruby](http://github.com/substack/dnode-ruby) (experimental)
+* [dnode-perl](http://github.com/substack/dnode-perl)
+* [dnode-ruby](http://github.com/substack/dnode-ruby)
+
+There's a python one in the works too at
+* [dnode-python](https://github.com/jesusabdullah/dnode-python)
+but it's not finished yet.
+
+Press!
+======
+
+[Simon Willison](http://simonwillison.net/2010/Jul/11/dnode/) says:
+
+> Mind-bendingly clever. DNode lets you expose a JavaScript function so that it
+> can be called from another machine using a simple JSON-based network protocol.
+> That’s relatively straight-forward... but DNode is designed for asynchronous
+> environments, and so also lets you pass callback functions which will be
+> translated in to references and used to make remote method invocations back to
+> your original client. And to top it off, there’s a browser client library so
+> you can perform the same trick over a WebSocket between a browser and a
+> server.

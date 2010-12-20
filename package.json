@@ -1,24 +1,30 @@
 {
     "name" : "dnode",
-    "version" : "0.3.12",
-    "description" : "Asynchronous, bidirectional remote method calls with transparently wrapped callbacks",
+    "version" : "0.4.0",
+    "description" : "Transparently call remote callbacks",
     "modules" : {
         "index" : "./lib/dnode",
         "web" : "./lib/web",
         "events" : "./lib/events"
     },
-    "directories" : {
-        "test" : "./test"
-    },
+    "keywords" : [
+        "rpc",
+        "rmi",
+        "remote",
+        "network",
+        "communication",
+        "websockets",
+        "socket.io"
+    ],
     "repository" : {
         "type" : "git",
         "url" : "http://github.com/substack/dnode.git"
     },
     "dependencies" : {
-        "socket.io" : ">=0.5.1",
+        "socket.io" : ">=0.6.1",
         "lazy" : ">=1.0.1",
         "traverse" : ">=0.0.8",
         "connect" : ">=0.2.0"
     },
-    "engine" : ["node >=0.1.100"]
+    "engine" : ["node >=0.2.0"]
 }
