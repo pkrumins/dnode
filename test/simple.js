@@ -14,7 +14,7 @@ exports.simple = function (assert) {
             assert.equal(n, 5);
             return n * 10;
         }),
-    }).listen(port);
+    }).listen(port.toString()); // test for stringified ports too why not
     
     server.on('ready', function () {
         DNode.connect(port, function (remote, conn) {
