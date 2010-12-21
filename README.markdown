@@ -1,31 +1,70 @@
 dnode
 =====
 
-With dnode you can call functions defined on remote servers as if they were
-defined locally. No XML, no stubs, no schemas, no cruft layers.
-Just throw an object at `dnode()` and then `.connect(port)` or `.listen(port)`.
+DNode is an object-oriented RPC system for node.js.
+
+With dnode you call remote methods from a server's exposed functions.
+Any functions you pass along to remote functions as arguments are automatically
+wrapped so that the remote end can call you back even if those functions are
+deeply nested in an object.
+
+If you've used drb from ruby it's a similar idea.
+Both drb and dnode are bidirectional so each side of the connection can call
+methods exposed on the other side.
+Unlike drb, all dnode methods are asynchronous, so to get the results of remote
+operations, you supply callbacks.
+
+Also unlike drb, remote methods can return objects with methods of their own
+which are automatically and recursively wrapped. Since you're not stuck with the
+methods that the server exposes directly at the dnode object entry-point, you
+can expose dynamic interfaces with rich object hierarchies to remote clients.
 
 This trick works over plain old tcp sockets or over websockets
 courtesy of [socket.io](http://github.com/LearnBoost/Socket.IO-node).
 
-If you've used drb from ruby it's the same idea, except dnode is asynchronous
-and the wrapping happens recursively on result values too.
-This is sometimes called "remote method invocation" or 
-
-dnode is:
-    * bidirectional, so each side of the connection can call methods defined on
-        the other side
-    * asynchronous, so results are made available over the network link using
-        callbacks instead of 
-
-The only catch is that you've got to write your methods in
+The only catch is that everything is asynchronous, so you've got to write your
+methods in
 [continuation passing style](http://en.wikipedia.org/wiki/Continuation-passing_style).
-So instead of using `return` like this:
+Instead of using `return` like this:
     function foo () { return 555 }
 you call a function passed in as an argument
     function foo (cb) { cb(555) }
-There are some very good technical reasons for enforcing this style, it's not
-just me being opinionated.
+
+Using CPS means that you can pass in multiple callbacks embedded arbitrarily
+in the argument lists to remote functions or no callbacks at all. There are no
+implicit return callbacks to fret over.
+
+dnode(object or constructor)
+============================
+
+Just pass `dnode()` an object with functions and attributes you want to expose
+or a constructor function that creates a new object with functions and
+attributes for each client. The constructor function will be passed a reference to
+the remote object and a connection object.
+`dnode()` returns an object with `listen()` and `connect()` functions described
+below.
+
+connection
+----------
+
+The connection object emits 'ready'
+when the remote object has been fully populated.
+The connect object has an `id` attribute that uniquely identifies clients.
+
+connect(port)
+-------------
+
+Connect to a remote dnode service. Pass in a port, host, block, or options
+object in any order. The block function if present will be executed with the
+remote object and the connection object once the remote object is ready.
+
+listen(port)
+------------
+
+Listen for incoming dnode clients. Pass in a port, host, block, or options
+object in any order. The block function if present will be executed with the
+remote object and the connection object once the remote object is ready for each
+client.
 
 Examples
 ========
