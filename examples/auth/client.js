@@ -28,18 +28,3 @@ DNode.connect(7007, function (remote,conn) {
         }
     });
 });
-
-// Clients who connect get an instance of this session object:
-function Session (params) {
-    var conn = params.connection;
-    var user = params.user;
-    var client = params.client;
-    
-    conn.addListener('end', function () {
-        sys.puts('User ' + sys.inspect(user) + ' disconnected');
-    });
-    
-    this.quote = function (f) {
-       f(quotes[Math.random() * quotes.length]);
-    };
-}
