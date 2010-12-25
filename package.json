@@ -1,6 +1,6 @@
 {
     "name" : "dnode",
-    "version" : "0.4.0",
+    "version" : "0.4.1",
     "description" : "Transparently call remote callbacks",
     "modules" : {
         "index" : "./lib/dnode",
@@ -24,7 +24,7 @@
         "socket.io" : ">=0.6.1",
         "lazy" : ">=1.0.1",
         "traverse" : ">=0.0.8",
-        "connect" : ">=0.2.0"
+        "recon" : ">=0.0.3"
     },
     "engine" : ["node >=0.2.0"]
 }
