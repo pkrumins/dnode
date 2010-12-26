@@ -58,6 +58,10 @@ Connect to a remote dnode service. Pass in a port, host, block, or options
 object in any order. The block function if present will be executed with the
 remote object and the connection object once the remote object is ready.
 
+To reconnect when the connection drops, specify `reconnect` in the options
+object as a millisecond delay between reconnection attempts. This is
+experimental.
+
 listen(port)
 ------------
 
