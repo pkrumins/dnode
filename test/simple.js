@@ -18,6 +18,7 @@ exports.simple = function (assert) {
     
     server.on('ready', function () {
         DNode.connect(port, function (remote, conn) {
+            assert.ok(conn.id);
             assert.equal(conn.stream.remoteAddress, '127.0.0.1');
             
             remote.moo(function (x) {

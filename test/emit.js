@@ -16,7 +16,8 @@ exports['event emitter test'] = function (assert) {
     });
     
     Server.prototype = new EventEmitter;
-    function Server() {
+    function Server (client, conn) {
+        assert.ok(conn.id);
         var self = this;
         DNode.expose(self, 'on');
         DNode.expose(self, 'removeListener');
