@@ -1,6 +1,6 @@
 {
     "name" : "dnode",
-    "version" : "0.4.2",
+    "version" : "0.4.3",
     "description" : "Transparently call remote callbacks",
     "modules" : {
         "index" : "./lib/dnode",
