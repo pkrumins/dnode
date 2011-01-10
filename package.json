@@ -1,17 +1,15 @@
 {
     "name" : "dnode",
-    "version" : "0.4.3",
-    "description" : "Transparently call remote callbacks",
+    "version" : "0.4.4",
+    "description" : "JSON-based asynchronous RMI between nodes and the browser. Throw callbacks around like nobody's business.",
     "modules" : {
         "index" : "./lib/dnode",
-        "web" : "./lib/web",
-        "events" : "./lib/events"
+        "web" : "./lib/web"
     },
     "keywords" : [
-        "rpc",
-        "rmi",
+        "message passing",
+        "rpc", "rmi", "drb",
         "remote",
-        "network",
         "communication",
         "websockets",
         "socket.io"
