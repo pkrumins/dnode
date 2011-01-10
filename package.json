@@ -1,6 +1,6 @@
 {
     "name" : "dnode",
-    "version" : "0.4.4",
+    "version" : "0.4.5",
     "description" : "JSON-based asynchronous RMI between nodes and the browser. Throw callbacks around like nobody's business.",
     "modules" : {
         "index" : "./lib/dnode",
