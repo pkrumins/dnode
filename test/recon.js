@@ -33,8 +33,9 @@ exports.recon = function (assert) {
                     
                     remote.decify(5, function (x) {
                         assert.eql(x, 0.5);
-                        server2.close();
                         client.end();
+                        conn.end();
+                        server2.close();
                     });
                 }, 500);
             });
