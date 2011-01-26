@@ -70,6 +70,15 @@ object in any order. The block function if present will be executed with the
 remote object and the connection object once the remote object is ready for each
 client.
 
+use(middleware)
+---------------
+
+You can write your own dnode middleware with `.use()`. The `middleware` function
+you pass will be called just like the constructor function that `dnode()` takes.
+You can modify `this`, `remote`, and `conn` objects after the instance computed
+with the `dnode()` constructor executes but before the methods are sent over the
+wire.
+
 Examples
 ========
 

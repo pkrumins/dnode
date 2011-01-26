@@ -1,7 +1,7 @@
 {
     "name" : "dnode",
-    "version" : "0.4.5",
-    "description" : "JSON-based asynchronous RMI between nodes and the browser. Throw callbacks around like nobody's business.",
+    "version" : "0.5.0",
+    "description" : "Call remote methods and callbacks with a JSON-based protocol. RMI for network sockets and the browser too!",
     "modules" : {
         "index" : "./lib/dnode",
         "web" : "./lib/web"
