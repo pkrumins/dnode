@@ -212,6 +212,13 @@ You can also fetch them from github too:
     git clone http://github.com/substack/js-traverse.git
     git clone http://github.com/pkrumins/node-lazy.git
 
+Read More
+=========
+
+[Roll your own PubSub with DNode](http://substack.net/posts/9bac3e/Roll-your-own-PubSub-with-DNode)
+
+[DNode: Asynchronous Remote Method Invocation for Node.js and the Browser](http://substack.net/posts/85e1bd/DNode-Asynchronous-Remote-Method-Invocation-for-Node-js-and-the-Browser)
+
 Conventions
 ===========
 
