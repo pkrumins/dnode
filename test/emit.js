@@ -5,8 +5,7 @@ var sys = require('sys');
 exports['event emitter test'] = function (assert) {
     var emitted = false;
     var ev = new EventEmitter;
-    
-    DNode.expose(ev, 'emit');
+    ev.emit = ev.emit.bind(ev);
     
     ev.on('test1', function (a, b, c) {
         assert.equal(a, 1);
@@ -19,9 +18,9 @@ exports['event emitter test'] = function (assert) {
     function Server (client, conn) {
         assert.ok(conn.id);
         var self = this;
-        DNode.expose(self, 'on');
-        DNode.expose(self, 'removeListener');
-        DNode.expose(self, 'emit');
+        self.on = self.on.bind(self);
+        self.removeListener = self.removeListener.bind(self);
+        self.emit = self.emit.bind(self);
         
         self.pass = function (name, em) {
             self.on(name, function () {
