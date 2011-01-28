@@ -10,10 +10,10 @@ exports.simple = function (assert) {
             reply(n * 10);
         },
         moo : function (reply) { reply(100) },
-        sTimesTen : DNode.sync(function (n) {
+        sTimesTen : function (n, cb) {
             assert.equal(n, 5);
-            return n * 10;
-        }),
+            cb(n * 10);
+        },
     }).listen(port.toString()); // test for stringified ports too why not
     
     server.on('ready', function () {
