@@ -22,7 +22,9 @@
         "socket.io" : ">=0.6.1",
         "lazy" : ">=1.0.1",
         "traverse" : ">=0.0.8",
+        "hashish" : ">=0.0.2",
         "recon" : ">=0.0.5"
     },
-    "engine" : ["node >=0.2.0"]
+    "engine" : ["node >=0.2.0"],
+    "author": "James Halliday <mail@substack.net> (http://substack.net/)"
 }
