@@ -3,8 +3,7 @@ var connect = require('connect');
 
 var server = connect.createServer(
     connect.staticProvider(__dirname)
-).listen(6857);
-console.log('http://localhost:6857/');
+);
 
 var DNode = require('dnode');
 DNode(function (client) {
@@ -12,3 +11,6 @@ DNode(function (client) {
         cb('meow');
     };
 }).listen(server);
+
+server.listen(6857);
+console.log('http://localhost:6857/');

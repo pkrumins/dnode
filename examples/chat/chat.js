@@ -35,13 +35,13 @@ function ChatServer (client, con) {
 
 var connect = require('connect');
 var server = connect.createServer()
-    .use(connect.staticProvider(__dirname))
-    .listen(6061)
-;
+    .use(connect.staticProvider(__dirname));
 
 var DNode = require('dnode');
 DNode(ChatServer).listen(server, {
     transports : 'websocket xhr-multipart xhr-polling htmlfile'.split(' '),
 });
+
+server.listen(6061);
 
 console.log('http://localhost:6061/');
