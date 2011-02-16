@@ -1,18 +1,15 @@
 var net = require('net');
 var EventEmitter = require('events').EventEmitter;
-var Traverse = require('traverse');
-var Hash = require('hashish');
 var recon = require('recon');
 
 var http = require('http');
 var io = require('socket.io');
 
 var Conn = require('./conn');
-var WebSrc = require('./web');
 var StreamSocketIO = require('./stream_socketio');
 
-module.exports = DNode;
-module.exports.DNode = DNode;
+exports = module.exports = DNode;
+exports.DNode = DNode;
 
 function DNode (wrapper) {
     if (wrapper === undefined) wrapper = {};
@@ -105,16 +102,6 @@ function DNode (wrapper) {
             });
         }
         else if (server instanceof http.Server) {
-            // http server to proxy socketIO connections with
-            // this way works with both connect and express
-            if (typeof server.use === 'function') {
-                if (!('route' in params) || params.route) {
-                    server.use(WebSrc.route(
-                        params.route || '/dnode.js'
-                    ));
-                }
-            }
-            
             var sock = io.listen(server, params);
             StreamSocketIO(sock, function (stream) {
                 self.withStream(stream, params, params.block);
@@ -188,7 +175,9 @@ function parseArgs (argv) {
                 params.stream = arg;
             }
             else {
-                Hash.update(params, arg);
+                Object.keys(arg).forEach(function (key) {
+                    params[key] = arg;
+                });
             }
         }
         else if (typeof arg === 'undefined') {

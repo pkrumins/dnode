@@ -1,15 +1,19 @@
 #!/usr/bin/env node
 var express = require('express');
+var server = express.createServer();
 
-var server = express.createServer(
-    express.staticProvider(__dirname)
-);
-server.listen(6857);
-console.log('http://localhost:6857/');
+server.use(express.staticProvider(__dirname));
 
-var DNode = require('dnode');
-DNode(function (client) {
+server.use(require('browserify')({
+    require : [ 'dnode-client' ]
+}));
+
+var dnode = require('dnode');
+dnode(function (client) {
     this.cat = function (cb) {
         cb('meow');
     };
 }).listen(server);
+
+server.listen(6857);
+console.log('http://localhost:6857/');

@@ -1,11 +1,8 @@
 {
     "name" : "dnode",
-    "version" : "0.5.3",
-    "description" : "Call remote methods and callbacks with a JSON-based protocol. RMI for network sockets and the browser too!",
-    "modules" : {
-        "index" : "./lib/dnode",
-        "web" : "./lib/web"
-    },
+    "version" : "0.6.0",
+    "description" : "Execute remote callbacks with a JSON-based protocol. RMI for network sockets and socket.io too!"
+    "main" : "./index.js",
     "keywords" : [
         "message passing",
         "rpc", "rmi", "drb",
@@ -22,8 +19,9 @@
         "socket.io" : ">=0.6.1",
         "lazy" : ">=1.0.1",
         "traverse" : ">=0.0.8",
-        "hashish" : ">=0.0.2",
-        "recon" : ">=0.0.5"
+        "recon" : ">=0.0.5",
+        "scrubfun" : ">=0.0.1",
+        "dnode-browser" : ">=0.0.1"
     },
     "engine" : ["node >=0.2.0"],
     "author": "James Halliday <mail@substack.net> (http://substack.net/)"
