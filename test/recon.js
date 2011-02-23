@@ -6,25 +6,23 @@ exports.recon = function (assert) {
         assert.fail('never started');
     }, 10000);
     
-    var dto = setTimeout(function () {
-        assert.fail('never dropped');
-    }, 10000);
-    
-    var server1 = dnode({
-        decify : function (n, cb) { cb(n * 10) },
+    var server1 = dnode(function (remote, conn) {
+        this.decify = function (n, cb) {
+            cb(n * 10);
+            conn.end();
+        };
     }).listen(port);
     
     var client = dnode.connect(
         'localhost', port, { reconnect : 10 },
         function (remote, conn) {
             clearTimeout(to);
-            conn.once('drop', function () {
-                clearTimeout(dto);
-            });
             
             remote.decify(5, function (x) {
                 assert.eql(x, 50);
-                server1.close();
+                setTimeout(function () {
+                    server1.close();
+                }, 50);
                 
                 setTimeout(function () {
                     var server2 = dnode({

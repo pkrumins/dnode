@@ -49,7 +49,9 @@ dnode.prototype.connect = function () {
     }).bind(this));
     
     var client = this.proto.create();
+    
     client.end = stream.end.bind(stream);
+    client.destroy = stream.destroy.bind(stream);
     client.stream = stream;
     
     this.stack.forEach(function (middleware) {
@@ -97,8 +99,10 @@ dnode.prototype.listen = function () {
     server.on('connection', (function (stream) {
         var client = this.proto.create();
         clients[client.id] = client;
-        
+        client.stream = stream;
         client.end = stream.end.bind(stream);
+        client.destroy = stream.destroy.bind(stream);
+        
         stream.on('end', client.emit.bind(client, 'end'));
         
         this.stack.forEach(function (middleware) {
@@ -106,7 +110,10 @@ dnode.prototype.listen = function () {
         });
         
         client.on('request', function (req) {
-            stream.write(JSON.stringify(req) + '\n');
+            if (stream.writable) {
+                stream.write(JSON.stringify(req) + '\n');
+            }
+            // silently ignore data sent to non-writable streams
         });
         
         Lazy(stream).lines
@@ -118,22 +125,28 @@ dnode.prototype.listen = function () {
     }).bind(this));
     
     server.on('error', this.emit.bind(this, 'error'));
-    
-    this.end = function () {
-        Object.keys(clients)
-            .forEach(function (id) {
-                clients[id].end()
-            })
-        ;
-        server.close();
-        this.emit('end');
-    };
-    
-    this.close = this.end;
+    if (!this.servers) this.servers = [];
+    this.servers.push(server);
     
     return this;
 };
 
+dnode.prototype.end = function () {
+    Object.keys(this.proto.sessions)
+        .forEach((function (id) {
+            this.proto.sessions[id].stream.end()
+        }).bind(this))
+    ;
+    
+    (this.servers || []).forEach((function (server) {
+        server.close();
+    }).bind(this));
+    
+    this.emit('end');
+};
+
+dnode.prototype.close = dnode.prototype.end;
+ 
 dnode.connect = function () {
     var d = dnode();
     return d.connect.apply(d, arguments);
