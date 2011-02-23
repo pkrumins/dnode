@@ -1,35 +1,32 @@
-var DNode = require('dnode');
+var assert = require('assert');
+var dnode = require('dnode');
 var net = require('net');
-var sys = require('sys');
 
-exports.stream = function (assert) {
+exports.stream = function () {
     var port = Math.floor(Math.random() * 40000 + 10000);
     
-    var server = DNode({
+    var server = dnode({
         meow : function f (g) { g('cats') }
     });
     
-    var netServer = net.createServer(function (stream) {
-        server.withStream(stream);
-        setTimeout(function () { stream.end() }, 200);
-    })
-    netServer.listen(port, 'localhost');
+    var netServer = net.createServer();
+    server.listen(netServer);
     
-    var netClient = net.createConnection(port);
+    var to = setTimeout(function () {
+        assert.fail();
+    }, 5000);
     
     var times = 0;
-    server.on('ready', function () {
-        DNode.connect(netClient, function (remote) {
+    netServer.listen(port, function () {
+        var netClient = net.createConnection(port);
+        dnode.connect(netClient, function (remote) {
             remote.meow(function (cats) {
-                times ++;
+                clearTimeout(to);
                 assert.equal(cats, 'cats');
+                
+                netClient.end();
+                netServer.close();
             });
         });
     });
-    
-    setTimeout(function () {
-        assert.equal(times, 1);
-        netClient.end();
-        netServer.close();
-    }, 200);
 };

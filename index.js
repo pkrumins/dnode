@@ -34,11 +34,11 @@ dnode.prototype.connect = function () {
         if (params.reconnect) {
             stream = recon(params);
         }
-        else {
+        else if (params.port) {
             stream = net.createConnection(params.port, params.host);
+            stream.remoteAddress = params.host || '127.0.0.1';
+            stream.remotePort = params.port;
         }
-        stream.remoteAddress = params.host || '127.0.0.1';
-        stream.remotePort = params.port;
     }
     
     stream.on('error', this.emit.bind(this, 'error'));
