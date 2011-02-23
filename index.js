@@ -101,6 +101,10 @@ dnode.prototype.listen = function () {
         client.end = stream.end.bind(stream);
         stream.on('end', client.emit.bind(client, 'end'));
         
+        this.stack.forEach(function (middleware) {
+            middleware.call(client.instance, client.remote, client);
+        });
+        
         client.on('request', function (req) {
             stream.write(JSON.stringify(req) + '\n');
         });
