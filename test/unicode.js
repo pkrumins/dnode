@@ -1,21 +1,24 @@
-var DNode = require('dnode');
+var dnode = require('dnode');
 
 exports.simple = function (assert) {
     var port = Math.floor(Math.random() * 40000 + 10000);
     
-    var server = DNode({
+    var server = dnode({
         unicodes : function (reply) {
             reply('☔☔☔☁☼☁❄');
         }
     }).listen(port);
     
     server.on('ready', function () {
-        DNode.connect(port, function (remote, conn) {
+        dnode.connect(port, function (remote, conn) {
             assert.equal(conn.stream.remoteAddress, '127.0.0.1');
             remote.unicodes(function (str) {
                 assert.equal(str, '☔☔☔☁☼☁❄', 'remote unicodes == ☔☔☔☁☼☁❄');
             });
-            server.end();
+            
+            setTimeout(function () {
+                server.end();
+            }, 50);
         });
     });
 };
