@@ -21,7 +21,6 @@ exports.double = function (assert) {
                 function (x,y) {
                     assert.equal(x, 20, 'double, not equal');
                     assert.equal(y, 5, 'double, not equal');
-                    server.end();
                 }
             );
             
