@@ -1,151 +1,132 @@
 var net = require('net');
 var EventEmitter = require('events').EventEmitter;
+
+var protocol = require('dnode-protocol');
 var recon = require('recon');
+var Lazy = require('lazy');
 
 var http = require('http');
 var io = require('socket.io');
+var StreamSocketIO = require('./lib/stream_socketio');
 
-var Conn = require('./conn');
-var StreamSocketIO = require('./stream_socketio');
+exports = module.exports = dnode;
 
-exports = module.exports = DNode;
-exports.DNode = DNode;
-
-function DNode (wrapper) {
-    if (wrapper === undefined) wrapper = {};
-    var self = new EventEmitter;
+function dnode (wrapper) {
+    if (!(this instanceof dnode)) return new dnode(wrapper);
     
-    self.stack = [];
-    self.use = function (middleware) {
-        self.stack.push(middleware);
-        return self;
-    };
-    
-    self.connect = function () {
-        var params = parseArgs(arguments);
-        var stream = params.stream;
-        
-        if (params.port) {
-            if (params.reconnect) {
-                stream = recon(params);
-            }
-            else {
-                stream = net.createConnection(params.port, params.host);
-            }
-            stream.remoteAddress = params.host || '127.0.0.1';
-            stream.remotePort = params.port;
-        }
-        
-        var conn = self.withStream(stream, params, params.block);
-        stream.on('error', conn.emit.bind(conn, 'localError'));
-        
-        self.end = function () {
-            stream.end();
-            self.emit('end');
-            return self;
-        };
-        
-        printErrors(self);
-        return self;
-    };
-    
-    var ready = false;
-    var conns = [];
-    
-    self.withStream = function (stream, opts, block) {
-        if (!ready) self.emit('ready');
-        ready = true;
-        
-        var conn = new Conn(stream, wrapper);
-        self.stack.forEach(function (middleware) {
-            middleware.call(conn.instance, conn.remote, conn);
-        });
-        
-        conn.on('remote', function (remote) {
-            if (block) block.call(conn.instance, remote, conn);
-        });
-        
-        conn.on('localError',function(err) {
-            //required behaviour for test/asynct/error.asynct.js
-            self.emit('localError',err);
-        });
-        conn.on('remoteError',function(err) {
-            //required behaviour for test/asynct/error.asynct.js
-            self.emit('remoteError',err);
-        });
-        
-        conn.on('connect', function () { 
-            conns.push(conn) 
-            self.emit('connect', conn);
-        });
-        
-        conn.on('end', function () {
-            var i = conns.indexOf(conn);
-            if (i >= 0) conns.splice(i,1);
-        });
-        
-        return conn;
-    };
-    
-    self.end = function () {
-        self.emit('error', '.end() is not defined for this action');
-        return self;
-    };
-    
-    self.listen = function () {
-        var params = parseArgs(arguments);
-        var server = params.server;
-        
-        if (server instanceof io.Listener) {
-            var stream = StreamSocketIO(function (s) {
-                self.withStream(s, params, params.block);
-            });
-        }
-        else if (server instanceof http.Server) {
-            var sock = io.listen(server, params);
-            StreamSocketIO(sock, function (stream) {
-                self.withStream(stream, params, params.block);
-            });
-            
-            ready = true;
-            self.emit('ready');
-        }
-        else if (server instanceof net.Stream) {
-            self.withStream(server, params, params.block);
-        }
-        else if (params.port) {
-            server = net.createServer(function (stream) {
-                self.withStream(stream, params, params.block);
-            });
-            server.on('error', self.emit.bind(self, 'localError'))
-            server.listen(params.port, params.host, function () {
-                ready = true;
-                self.emit('ready')
-            });
-        }
-        else {
-            throw new Error('Not sure how to fire up this listener');
-        }
-        
-        self.end = function () {
-            conns.forEach(function (conn) { conn.end() });
-            server.close();
-            self.emit('end');
-        };
-        
-        self.close = self.end;
-        
-        printErrors(self);
-        return self;
-    };
-    
-    return self;
+    this.proto = protocol(wrapper);
+    this.stack = [];
+    return this;
 }
 
-// So DNode.connect and DNode().connect do the same thing:
-DNode.connect = function () {
-    var dnode = DNode();
-    return dnode.connect.apply(dnode,[].concat.apply([],arguments));
+dnode.prototype = new EventEmitter;
+
+dnode.prototype.use = function (middleware) {
+    this.stack.push(middleware);
+    return this;
+};
+
+dnode.prototype.connect = function () {
+    var params = parseArgs(arguments);
+    var stream = params.stream;
+    
+    if (params.port) {
+        if (params.reconnect) {
+            stream = recon(params);
+        }
+        else {
+            stream = net.createConnection(params.port, params.host);
+        }
+        stream.remoteAddress = params.host || '127.0.0.1';
+        stream.remotePort = params.port;
+    }
+    
+    stream.on('error', this.emit.bind(this, 'error'));
+    stream.on('end', this.emit.bind(this, 'end'));
+    stream.on('connect', this.emit.bind(this, 'connect'));
+    
+    var client = this.proto.create();
+    client.end = stream.end.bind(stream);
+    client.stream = stream;
+    
+    this.stack.forEach(function (middleware) {
+        middleware.call(client.instance, client.remote, client);
+    });
+    
+    client.on('request', function (req) {
+        stream.write(JSON.stringify(req));
+    });
+    
+    if (params.block) {
+        client.on('remote', function () {
+            params.block.call(client.instance, client.remote, client);
+        });
+    }
+    
+    Lazy(stream).lines
+        .map(String)
+        .forEach(client.parse)
+    ;
+    
+    client.start();
+    
+    return this;
+};
+
+dnode.prototype.listen = function () {
+    var params = parseArgs(arguments);
+    var server = params.server;
+    
+    if (params.port) {
+        server = net.createServer();
+        server.listen(
+            params.port, params.host,
+            this.emit.bind(this, 'ready')
+        );
+    }
+    
+    if (!server) {
+        this.emit('error', new Error('Not sure how to fire up this listener'));
+    }
+    
+    var clients = {};
+    server.on('connection', (function (stream) {
+        var client = this.proto.create();
+        clients[client.id] = client;
+        
+        client.on('request', function (req) {
+            stream.write(JSON.stringify(req));
+        });
+        
+        Lazy(stream).lines
+            .map(String)
+            .forEach(client.parse)
+        ;
+    }).bind(this));
+    
+    server.on('error', this.emit.bind(this, 'error'));
+    
+    this.end = function () {
+        Object.keys(clients)
+            .forEach(function (id) {
+                clients[id].end()
+            })
+        ;
+        server.close();
+        this.emit('end');
+    };
+    
+    this.close = this.end;
+    
+    return this;
+};
+
+dnode.connect = function () {
+    return dnode.connect.apply(dnode(), arguments);
+};
+
+dnode.listen = function () {
+    return dnode.listen.apply(dnode(), arguments);
 };
 
 function parseArgs (argv) {
@@ -190,15 +171,4 @@ function parseArgs (argv) {
     });
     
     return params;
-}
-
-function printErrors (em) {
-    // log the error if no listeners already bound on next tick
-    process.nextTick(function () {
-        if (em.listeners('localError').length === 0) {
-            em.on('localError', function (err) {
-                console.error(err.stack ? err.stack : err);
-            });
-        }
-    });
 }
