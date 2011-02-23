@@ -5,8 +5,6 @@ var protocol = require('dnode-protocol');
 var recon = require('recon');
 var Lazy = require('lazy');
 
-var http = require('http');
-var io = require('socket.io');
 var StreamSocketIO = require('./lib/stream_socketio');
 
 exports = module.exports = dnode;
@@ -176,17 +174,18 @@ function parseArgs (argv) {
             params.block = arg;
         }
         else if (typeof arg === 'object') {
-            var serverTypes = [ http.Server, io.Listener, net.Server ];
-            if (serverTypes.some(function (t) { return arg instanceof t })) {
-                params.server = arg;
+            if (arg.__proto__ === Object.prototype) {
+                // merge vanilla objects into params
+                Object.keys(arg).forEach(function (key) {
+                    params[key] = arg;
+                });
             }
             else if (arg instanceof net.Stream) {
                 params.stream = arg;
             }
             else {
-                Object.keys(arg).forEach(function (key) {
-                    params[key] = arg;
-                });
+                // and non-Stream, non-vanilla objects are probably servers
+                params.server = arg;
             }
         }
         else if (typeof arg === 'undefined') {

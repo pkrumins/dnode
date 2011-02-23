@@ -15,14 +15,24 @@
         "type" : "git",
         "url" : "http://github.com/substack/dnode.git"
     },
+    "directories" : {
+        "lib" : "./lib"
+        "examples" : "./examples"
+    },
     "dependencies" : {
         "socket.io" : ">=0.6.1",
         "lazy" : ">=1.0.1",
         "traverse" : ">=0.0.8",
         "recon" : ">=0.0.5",
+        "browserify" : ">=0.1.1",
+        "source" : ">=0.0.1",
         "dnode-protocol" : ">=0.0.3",
         "dnode-browser" : ">=0.0.1"
     },
-    "engine" : ["node >=0.2.0"],
-    "author": "James Halliday <mail@substack.net> (http://substack.net/)"
+    "engine" : { "node" : ">=0.4.0" },
+    "author" : {
+        "name" : "James Halliday",
+        "email" : "mail@substack.net",
+        "url" : "http://substack.net"
+    }
 }
