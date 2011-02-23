@@ -43,7 +43,10 @@ dnode.prototype.connect = function () {
     
     stream.on('error', this.emit.bind(this, 'error'));
     stream.on('end', this.emit.bind(this, 'end'));
-    stream.on('connect', this.emit.bind(this, 'connect'));
+    stream.on('connect', (function () {
+        client.start();
+        this.emit('connect');
+    }).bind(this));
     
     var client = this.proto.create();
     client.end = stream.end.bind(stream);
@@ -54,8 +57,11 @@ dnode.prototype.connect = function () {
     });
     
     client.on('request', function (req) {
-        stream.write(JSON.stringify(req));
+        stream.write(JSON.stringify(req) + '\n');
     });
+    
+    stream.on('ready', this.emit.bind(this, 'ready'));
+    stream.on('remote', this.emit.bind(this, 'remote'));
     
     if (params.block) {
         client.on('remote', function () {
@@ -67,8 +73,6 @@ dnode.prototype.connect = function () {
         .map(String)
         .forEach(client.parse)
     ;
-    
-    client.start();
     
     return this;
 };
@@ -94,14 +98,19 @@ dnode.prototype.listen = function () {
         var client = this.proto.create();
         clients[client.id] = client;
         
+        client.end = stream.end.bind(stream);
+        stream.on('end', client.emit.bind(client, 'end'));
+        
         client.on('request', function (req) {
-            stream.write(JSON.stringify(req));
+            stream.write(JSON.stringify(req) + '\n');
         });
         
         Lazy(stream).lines
             .map(String)
             .forEach(client.parse)
         ;
+        
+        client.start();
     }).bind(this));
     
     server.on('error', this.emit.bind(this, 'error'));
@@ -122,11 +131,13 @@ dnode.prototype.listen = function () {
 };
 
 dnode.connect = function () {
-    return dnode.connect.apply(dnode(), arguments);
+    var d = dnode();
+    return d.connect.apply(d, arguments);
 };
 
 dnode.listen = function () {
-    return dnode.listen.apply(dnode(), arguments);
+    var d = dnode();
+    return d.listen.apply(d, arguments);
 };
 
 function parseArgs (argv) {

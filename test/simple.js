@@ -1,10 +1,10 @@
-var DNode = require('dnode');
+var dnode = require('dnode');
 
 
 exports.simple = function (assert) {
     var port = Math.floor(Math.random() * 40000 + 10000);
     
-    var server = DNode({
+    var server = dnode({
         timesTen : function (n,reply) {
             assert.equal(n, 50);
             reply(n * 10);
@@ -17,7 +17,7 @@ exports.simple = function (assert) {
     }).listen(port.toString()); // test for stringified ports too why not
     
     server.on('ready', function () {
-        DNode.connect(port, function (remote, conn) {
+        dnode.connect(port, function (remote, conn) {
             assert.ok(conn.id);
             assert.equal(conn.stream.remoteAddress, '127.0.0.1');
             
