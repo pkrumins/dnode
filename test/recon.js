@@ -6,37 +6,44 @@ exports.recon = function (assert) {
         assert.fail('never started');
     }, 10000);
     
-    var server1 = dnode(function (remote, conn) {
-        this.decify = function (n, cb) {
-            cb(n * 10);
-            conn.end();
-        };
-    }).listen(port);
+    var multiplier = null;
+    var running = false;
+    function makeServer (m) {
+        multipler = m;
+        var s = dnode(function (remote, conn) {
+            this.mult = function (n, cb) {
+                cb(n * m);
+                conn.end();
+            };
+        }).listen(port);
+        return s;
+    }
+    var server = makeServer(10);
     
-    var client = dnode.connect(
-        'localhost', port, { reconnect : 10 },
-        function (remote, conn) {
-            clearTimeout(to);
-            
-            remote.decify(5, function (x) {
-                assert.eql(x, 50);
-                setTimeout(function () {
-                    server1.close();
-                }, 50);
-                
-                setTimeout(function () {
-                    var server2 = dnode({
-                        decify : function (n, cb) { cb(n * 0.1) }
-                    }).listen(port);
-                    
-                    remote.decify(5, function (x) {
-                        assert.eql(x, 0.5);
-                        client.end();
-                        conn.end();
-                        server2.close();
-                    });
-                }, 500);
-            });
-        }
-    );
+    var client = dnode.connect({
+        host : 'localhost',
+        port : port,
+        reconnect : 100,
+        block : session,
+    });
+    
+    var res = {};
+    function session (remote, conn) {
+        clearTimeout(to);
+        
+        remote.mult(5, function (x) {
+            res[multipler] = x;
+            assert.eql(x, 5 * multipler);
+            conn.end();
+            server.close();
+        });
+    }
+    
+    server.once('close', function () {
+        server = makeServer(33);
+        
+        server.once('close', function () {
+            assert.eql(res, { 10 : 10 * 5,  33 : 33 * 5 });
+        });
+    });
 };

@@ -43,22 +43,26 @@ dnode.prototype.connect = function () {
                 setTimeout((function () {
                     this.emit('reconnect');
                     dnode.prototype.connect.apply(this, args);
-                }).bind(this));
+                }).bind(this), params.reconnect);
             }
             else this.emit('error', err)
         }).bind(this));
         
-        this.on('end', function () {
+        this.once('end', (function () {
+            if (!params.reconnect) return;
             this.emit('drop');
             
             setTimeout((function () {
+                if (!params.reconnect) return;
                 this.emit('reconnect');
                 dnode.prototype.connect.apply(this, args);
             }).bind(this), params.reconnect);
-        });
+        }).bind(this));
+    }
+    else {
+        stream.on('error', this.emit.bind(this, 'error'));
     }
     
-    stream.on('error', this.emit.bind(this, 'error'));
     stream.on('end', this.emit.bind(this, 'end'));
     
     stream.on('connect', (function () {
@@ -138,6 +142,12 @@ dnode.prototype.listen = function () {
             // silently ignore data sent to non-writable streams
         });
         
+        if (params.block) {
+            client.on('remote', function () {
+                params.block.call(client.instance, client.remote, client);
+            });
+        }
+        
         Lazy(stream).lines
             .map(String)
             .forEach(client.parse)
@@ -159,15 +169,20 @@ dnode.prototype.end = function () {
             this.proto.sessions[id].stream.end()
         }).bind(this))
     ;
-    
-    (this.servers || []).forEach((function (server) {
-        server.close();
-    }).bind(this));
-    
     this.emit('end');
 };
 
-dnode.prototype.close = dnode.prototype.end;
+dnode.prototype.close = function () {
+    var servers = this.servers || [];
+    var waiting = servers.length;
+    servers.forEach((function (server) {
+        server.once('close', (function () {
+            waiting --;
+            if (waiting === 0) this.emit('close');
+        }).bind(this));
+        server.close();
+    }).bind(this));
+};
  
 dnode.connect = function () {
     var d = dnode();
