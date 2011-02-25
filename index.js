@@ -177,7 +177,7 @@ function parseArgs (argv) {
             if (arg.__proto__ === Object.prototype) {
                 // merge vanilla objects into params
                 Object.keys(arg).forEach(function (key) {
-                    params[key] = arg;
+                    params[key] = arg[key];
                 });
             }
             else if (arg instanceof net.Stream) {
