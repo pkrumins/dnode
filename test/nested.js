@@ -25,6 +25,7 @@ exports['nested'] = function (assert) {
                             assert.equal(res, 5000, 'emitted value times ten');
                             remote2.timesTwenty(res, function (res2) {
                                 assert.equal(res2, 100000, 'result times twenty');
+                                conn1.end(); conn2.end();
                                 server1.close(); server2.close();
                             });
                         });

@@ -17,7 +17,8 @@ exports.simple = function (assert) {
             });
             
             setTimeout(function () {
-                server.end();
+                conn.end();
+                server.close();
             }, 50);
         });
     });

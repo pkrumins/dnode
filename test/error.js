@@ -51,12 +51,14 @@ exports.errors = function (assert) {
             this.pow = function () {
                 throw 'Local error';
             };
-        }).connect(port, function (remote) {
+        }).connect(port, function (remote, conn) {
             remote.one();
             remote.two();
             remote.three();
             setTimeout(function () {
+                conn.end();
                 server.end();
+                server.close();
             }, 100);
         });
     });

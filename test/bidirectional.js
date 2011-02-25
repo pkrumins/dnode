@@ -27,13 +27,14 @@ exports['bidirectional'] = function (assert) {
         }).connect(port, function (remote, conn) {
             remote.timesX(3, function (res) {
                 assert.equal(res, 60, 'result of 20 * 3 == 60');
+                conn.end();
+                server.close();
             });
         });
     });
         
-    setTimeout(function () {
+    server.once('close', function () {
         assert.equal(counts.timesX, 1, 'timesX called once');
         assert.equal(counts.clientX, 1, 'clientX called once');
-        server.end();
-    }, 300);
+    });
 };

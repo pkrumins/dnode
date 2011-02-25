@@ -10,7 +10,7 @@ exports['object ref tests'] = function (assert) {
     }).listen(port);
     
     server.on('ready', function () {
-        DNode.connect(port, function (remote) {
+        DNode.connect(port, function (remote, conn) {
             remote.getObject(function (rObj) {
                 assert.equal(rObj.a, 1);
                 assert.equal(rObj.b, 2);
@@ -22,6 +22,7 @@ exports['object ref tests'] = function (assert) {
                 assert.equal(typeof obj.f, 'function');
                 rObj.f(13, function (res) {
                     assert.equal(res, 260);
+                    conn.end();
                     server.close();
                 });
             });

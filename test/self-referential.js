@@ -25,7 +25,7 @@ exports.simple = function (assert) {
             args.push(args)
 				
             remote.print(args, function (m) {
-
+                conn.end();
                 server.close();
 
             });

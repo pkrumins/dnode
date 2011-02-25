@@ -20,7 +20,7 @@ exports['circular refs'] = function (assert) {
     }).listen(port);
     
     server.on('ready', function () {
-        DNode.connect(port, function (remote) {
+        DNode.connect(port, function (remote, conn) {
             var obj = { a : 1, b : 2 };
             obj.c = obj;
             
@@ -35,7 +35,8 @@ exports['circular refs'] = function (assert) {
                     sys.inspect(ref.d),
                     sys.inspect(ref)
                 );
-                server.end();
+                conn.end();
+                server.close();
             });
         });
     });

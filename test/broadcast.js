@@ -53,6 +53,7 @@ exports.broadcast = function (assert) {
     
     setTimeout(function () {
         server.end();
+        server.close();
         assert.equal(
             sys.inspect(recv[0]),
             "[ '#0 says: hello!', '#1 says: hey', '#2 says: wowsy' ]",

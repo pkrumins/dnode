@@ -24,8 +24,8 @@ exports.simple = function (assert) {
             }
             remote.timesTen(args, function (m) {
                 assert.equal(m, 50, '5 * 10 == 50');
+                conn.end();
                 server.close();
-
             });
         });
     });

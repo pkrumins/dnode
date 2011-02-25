@@ -28,6 +28,7 @@ exports.simple = function (assert) {
                 assert.equal(m, 50, '5 * 10 == 50');
                 remote.timesTen(m, function (n) {
                     assert.equal(n, 500, '50 * 10 == 500');
+                    conn.end();
                     server.close();
                 });
             });

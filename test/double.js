@@ -14,7 +14,7 @@ exports.double = function (assert) {
     }).listen(port);
     
     server.on('ready', function () {
-        DNode.connect(port, function (remote) {
+        DNode.connect(port, function (remote, conn) {
             remote.z(
                 function (x,f) { f(x * 2) },
                 function (x,f) { f(x / 2) },
@@ -29,7 +29,8 @@ exports.double = function (assert) {
             remote.z(plusTen, plusTen, function (x,y) {
                 assert.equal(x, 20, 'double, equal');
                 assert.equal(y, 20, 'double, equal');
-                server.end();
+                conn.end();
+                server.close();
             });
         });
     });

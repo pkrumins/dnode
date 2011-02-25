@@ -44,7 +44,7 @@ exports['event emitter test'] = function (assert) {
     
     var server = DNode(Server).listen(port);
     server.on('ready', function () {
-        DNode.connect(port, function (remote) {
+        DNode.connect(port, function (remote, conn) {
             remote.pass('test1', ev);
             var test2_calls = 0;
             remote.on('test2', function f () {
@@ -52,9 +52,10 @@ exports['event emitter test'] = function (assert) {
                 assert.ok(test2_calls == 1, 'test2 emitter not removed')
                 remote.removeListener('test2', f);
                 remote.emit('test2');
+                conn.end();
+                server.close();
             });
         });
     });
-    setTimeout(function () { server.end() }, 750);
 };
 

@@ -10,8 +10,9 @@ exports.refs = function (assert) {
     }).listen(port);
     
     server.on('ready', function () {
-        DNode.connect(port, function (remote) {
-            server.end();
+        DNode.connect(port, function (remote, conn) {
+            conn.end();
+            server.close();
             assert.equal(
                 remote.a, 1,
                 'remote.a != 1, a = ' + sys.inspect(remote.a)
