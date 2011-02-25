@@ -2,7 +2,6 @@ var net = require('net');
 var EventEmitter = require('events').EventEmitter;
 
 var protocol = require('dnode-protocol');
-var recon = require('recon');
 var Lazy = require('lazy');
 
 var StreamSocketIO = require('./lib/stream_socketio');
@@ -29,18 +28,39 @@ dnode.prototype.connect = function () {
     var stream = params.stream;
     
     if (params.port) {
-        if (params.reconnect) {
-            stream = recon(params);
-        }
-        else if (params.port) {
-            stream = net.createConnection(params.port, params.host);
-            stream.remoteAddress = params.host || '127.0.0.1';
-            stream.remotePort = params.port;
-        }
+        stream = net.createConnection(params.port, params.host);
+        stream.remoteAddress = params.host || '127.0.0.1';
+        stream.remotePort = params.port;
+    }
+    
+    if (params.reconnect) {
+        var args = arguments;
+        
+        stream.on('error', (function (err) {
+            if (err.code === 'ECONNREFUSED') {
+                this.emit('refused');
+                
+                setTimeout((function () {
+                    this.emit('reconnect');
+                    dnode.prototype.connect.apply(this, args);
+                }).bind(this));
+            }
+            else this.emit('error', err)
+        }).bind(this));
+        
+        this.on('end', function () {
+            this.emit('drop');
+            
+            setTimeout((function () {
+                this.emit('reconnect');
+                dnode.prototype.connect.apply(this, args);
+            }).bind(this), params.reconnect);
+        });
     }
     
     stream.on('error', this.emit.bind(this, 'error'));
     stream.on('end', this.emit.bind(this, 'end'));
+    
     stream.on('connect', (function () {
         client.start();
         this.emit('connect');
@@ -48,7 +68,11 @@ dnode.prototype.connect = function () {
     
     var client = this.proto.create();
     
-    client.end = stream.end.bind(stream);
+    client.end = function () {
+        if (params.reconnect) params.reconnect = 0;
+        stream.end();
+    };
+    
     client.destroy = stream.destroy.bind(stream);
     client.stream = stream;
     
