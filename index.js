@@ -24,8 +24,9 @@ dnode.prototype.use = function (middleware) {
 };
 
 dnode.prototype.connect = function () {
-    var params = parseArgs(arguments);
+    var params = protocol.parseArgs(arguments);
     var stream = params.stream;
+    var client = this.proto.create();
     
     if (params.port) {
         stream = net.createConnection(params.port, params.host);
@@ -70,8 +71,6 @@ dnode.prototype.connect = function () {
         this.emit('connect');
     }).bind(this));
     
-    var client = this.proto.create();
-    
     client.end = function () {
         if (params.reconnect) params.reconnect = 0;
         stream.end();
@@ -88,9 +87,6 @@ dnode.prototype.connect = function () {
         stream.write(JSON.stringify(req) + '\n');
     });
     
-    stream.on('ready', this.emit.bind(this, 'ready'));
-    stream.on('remote', this.emit.bind(this, 'remote'));
-    
     if (params.block) {
         client.on('remote', function () {
             params.block.call(client.instance, client.remote, client);
@@ -106,7 +102,7 @@ dnode.prototype.connect = function () {
 };
 
 dnode.prototype.listen = function () {
-    var params = parseArgs(arguments);
+    var params = protocol.parseArgs(arguments);
     var server = params.server;
     
     if (params.port) {
@@ -193,48 +189,3 @@ dnode.listen = function () {
     var d = dnode();
     return d.listen.apply(d, arguments);
 };
-
-function parseArgs (argv) {
-    var params = {};
-    
-    [].slice.call(argv).forEach(function (arg) {
-        if (typeof arg === 'string') {
-            if (arg.match(/^\d+$/)) {
-                params.port = arg;
-            }
-            else {
-                params.host = arg;
-            }
-        }
-        else if (typeof arg === 'number') {
-            params.port = arg;
-        }
-        else if (typeof arg === 'function') {
-            params.block = arg;
-        }
-        else if (typeof arg === 'object') {
-            if (arg.__proto__ === Object.prototype) {
-                // merge vanilla objects into params
-                Object.keys(arg).forEach(function (key) {
-                    params[key] = arg[key];
-                });
-            }
-            else if (arg instanceof net.Stream) {
-                params.stream = arg;
-            }
-            else {
-                // and non-Stream, non-vanilla objects are probably servers
-                params.server = arg;
-            }
-        }
-        else if (typeof arg === 'undefined') {
-            // ignore
-        }
-        else {
-            throw new Error('Not sure what to do about '
-                + typeof arg + ' objects');
-        }
-    });
-    
-    return params;
-}
