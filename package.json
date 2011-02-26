@@ -23,9 +23,14 @@
         "socket.io" : ">=0.6.1",
         "lazy" : ">=1.0.2",
         "traverse" : ">=0.3.1",
-        "browserify" : ">=0.1.4",
-        "source" : ">=0.0.3",
+        "browserify" : ">=0.1.6",
         "dnode-protocol" : ">=0.0.5"
+    },
+    "browserify" : {
+        "require" : [
+            "socket.io/support/socket.io-client/socket.io",
+            "dnode-protocol"
+        ]
     },
     "engine" : { "node" : ">=0.4.0" },
     "author" : {
