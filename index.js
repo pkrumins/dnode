@@ -116,7 +116,10 @@ dnode.prototype.listen = function () {
     else if (server && server instanceof http.Server
     || 'httpAllowHalfOpen' in server || params.webserver) {
         // a webserver, use socket.io
-        server = SocketIO(server || params.webserver);
+        server = SocketIO(
+            server || params.webserver,
+            params.mount || '/dnode.js'
+        );
     }
     
     if (!server) {

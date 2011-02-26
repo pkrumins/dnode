@@ -1,12 +1,10 @@
-#!/usr/bin/env node
 var connect = require('connect');
+var dnode = require('dnode');
 
-var server = connect.createServer(
-    connect.staticProvider(__dirname)
-);
+var server = connect.createServer();
+server.use(connect.staticProvider(__dirname));
 
-var DNode = require('dnode');
-DNode(function (client) {
+dnode(function (client) {
     this.cat = function (cb) {
         cb('meow');
     };

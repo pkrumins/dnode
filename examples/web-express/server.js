@@ -1,14 +1,9 @@
-#!/usr/bin/env node
 var express = require('express');
 var server = express.createServer();
+var dnode = require('dnode');
 
 server.use(express.staticProvider(__dirname));
 
-server.use(require('browserify')({
-    require : [ 'dnode-client' ]
-}));
-
-var dnode = require('dnode');
 dnode(function (client) {
     this.cat = function (cb) {
         cb('meow');

@@ -7,11 +7,7 @@ var server = connect.createServer();
 server.use(connect.staticProvider(__dirname));
 
 server.use(browserify({
-    require : [
-        'dnode/browser',
-        'dnode-protocol',
-        'socket.io/support/socket.io-client/socket.io',
-    ],
+    require : 'dnode',
     mount : '/browserify.js'
 }));
 
