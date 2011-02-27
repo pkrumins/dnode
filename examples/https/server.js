@@ -1,13 +1,12 @@
-#!/usr/bin/env node
-
-var crypto = require('crypto');
+var https = require('https');
 var fs = require('fs');
+var dnode = require('dnode');
 
 try {
-    var cert = crypto.createCredentials({
-        key : fs.readFileSync(__dirname + '/privatekey.pem', 'ascii'),
-        cert : fs.readFileSync(__dirname + '/certificate.pem', 'ascii'),
-    });
+    var opts = {
+        key : fs.readFileSync(__dirname + '/privatekey.pem'),
+        cert : fs.readFileSync(__dirname + '/certificate.pem'),
+    };
 }
 catch (e) {
     console.log('# {privatekey,certificate}.pem missing, do this first:');
@@ -18,14 +17,19 @@ catch (e) {
     process.exit();
 }
 
-var connect = require('connect');
-var https = connect.createServer();
-https.use(connect.staticProvider(__dirname + '/static'));
-https.setSecure(cert);
-https.listen(8020);
+var index = fs.readFileSync(__dirname + '/index.html');
+var server = https.createServer(opts, function (req, res) {
+    if (req.url === '/') {
+        res.writeHead(200, { 'Content-Type' : 'text/html' });
+        res.end(index);
+    }
+    else {
+        res.writeHead(404, { 'Content-Type' : 'text/html' });
+        res.end('Not found!');
+    }
+});
 
-var DNode = require('dnode');
-DNode(function (client) {
+dnode(function (client) {
     this.timesTen = function (n,f) { f(n * 10) };
     this.whoAmI = function (reply) {
         client.name(function (name) {
@@ -36,6 +40,7 @@ DNode(function (client) {
             );
         })
     };
-}).listen(https, { secure : true });
+}).listen(server);
+server.listen(8020);
 
 console.log('https://localhost:8020/');
