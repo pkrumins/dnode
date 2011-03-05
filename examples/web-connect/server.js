@@ -2,11 +2,11 @@ var connect = require('connect');
 var dnode = require('dnode');
 
 var server = connect.createServer();
-server.use(connect.staticProvider(__dirname));
+server.use(connect.static(__dirname));
 
 dnode(function (client) {
     this.cat = function (cb) {
-        cb('meow');
+        cb('meow ');
     };
 }).listen(server);
 

@@ -4,7 +4,7 @@ var dnode = require('dnode');
 
 var server = connect.createServer();
 
-server.use(connect.staticProvider(__dirname));
+server.use(connect.static(__dirname));
 
 server.use(browserify({
     require : 'dnode',

@@ -2,7 +2,7 @@ var express = require('express');
 var server = express.createServer();
 var dnode = require('dnode');
 
-server.use(express.staticProvider(__dirname));
+server.use(express.static(__dirname));
 
 dnode(function (client) {
     this.cat = function (cb) {

@@ -2,7 +2,7 @@
 
 var connect = require('connect');
 var server = connect.createServer(
-    connect.staticProvider(__dirname)
+    connect.static(__dirname)
 );
 
 var clients = {};

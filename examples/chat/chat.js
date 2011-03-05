@@ -35,7 +35,7 @@ function ChatServer (client, con) {
 
 var connect = require('connect');
 var server = connect.createServer()
-    .use(connect.staticProvider(__dirname));
+    .use(connect.static(__dirname));
 
 var DNode = require('dnode');
 DNode(ChatServer).listen(server, {
