@@ -28,11 +28,8 @@
     },
     "browserify" : {
         "name" : "dnode",
-        "main" : "./browser.js",
-        "require" : [
-            "socket.io/support/socket.io-client/socket.io",
-            "dnode-protocol"
-        ]
+        "base" : "./browser",
+        "require" : [ "dnode-protocol" ]
     },
     "engine" : { "node" : ">=0.4.0" },
     "author" : {
