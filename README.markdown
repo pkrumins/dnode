@@ -4,25 +4,31 @@ dnode
 DNode is an asynchronous object-oriented RPC system for node.js that lets you
 call remote functions.
 
-Just write a server:
+It works over network sockets and in the browser with
+[socket.io](https://github.com/LearnBoost/Socket.IO).
+
+dnode between two node.js processes
+-----------------------------------
+
+Just write a server.js:
 
     var dnode = require('dnode');
     
     var server = dnode({
         zing : function (n, cb) { cb(n * 100) }
     });
-    server.listen(7070);
+    server.listen(5050);
 
 Run it...
 
     $ node server.js
 
-Then you can whip up a client that calls the server's `zing` function!
+Then you can whip up a client.js that calls the server's `zing` function!
 
     var dnode = require('dnode');
 
-    dnode.connect(7070, function (remote) {
-        remote.zing(33, function (n) {
+    dnode.connect(5050, function (remote) {
+        remote.zing(66, function (n) {
             console.log('n = ' + n);
         });
     });
@@ -30,8 +36,73 @@ Then you can whip up a client that calls the server's `zing` function!
 *** 
 
     $ node client.js
-    n = 3300
+    n = 6600
     ^C
+
+dnode on the browser
+--------------------
+
+We can retrofit the previous example to run in the browser.
+
+Just write a server.js:
+
+    var express = require('express');
+    var app = express.createServer();
+    app.use(express.static(__dirname));
+    
+    app.listen(8080);
+    console.log('http://localhost:8080/');
+    
+    // then just pass the server app handle to .listen()!
+    
+    var dnode = require('dnode');
+    var server = dnode({
+        zing : function (n, cb) { cb(n * 100) }
+    });
+    server.listen(app);
+
+and whip up an index.html:
+
+    <html>
+    <head>
+    <script src="/dnode.js" type="text/javascript"></script>
+    <script type="text/javascript">
+        window.onload = function () {
+            
+            DNode.connect(function (remote) {
+                remote.zing(66, function (n) {
+                    document.getElementById('result').innerHTML = n;
+                });
+            });
+            
+        };
+    </script>
+    </head>
+    <body>
+    
+    n = <span id="result">?</span>
+    
+    </body>
+    </html>
+
+then just run the server.js:
+
+    $ node server.js
+    http://localhost:8080/
+
+and navigate to http://localhost:8080:
+
+![dnode in the browser](http://substack.net/images/dnode-slides/browser.png)
+
+Awesome it works!
+
+The dnode browser source automatically gets hosted at `/dnode.js` and it also
+works with
+[browserify](https://github.com/substack/dnode/tree/master/examples/web-browserify)
+[out of the box](https://github.com/substack/dnode/tree/master/examples/web-browserify).
+
+how it works
+------------
 
 When you throw an object at dnode, a recursive traversal scrubs out all of the
 `function` objects nested in your data structure and a secondary data structure
@@ -113,11 +184,11 @@ wire.
 
 Returns `this` so you can chain middlewares.
 
-objects
-=======
+the connection object
+=====================
 
-connection
-----------
+When you pass a constructor function to `dnode()` you'll get a connection
+object as the second argument to your constructor.
 
 The connection object (`conn`) is an EventEmitter.
 
@@ -138,116 +209,6 @@ The connection object (`conn`) is an EventEmitter.
 * conn re-emits error events from the stream object
 
 * conn emits 'refused', 'drop', and 'reconnect' when reconnect is enabled
-
-more examples!
-==============
-
-bidirectional
--------------
-
-Both sides of the connection in dnode can host up methods that the other side
-can call.
-
-Here's an example with some back-and-forth between hosted methods on each side
-of the connection:
-
-examples/bidirectional/server.js:
-
-    var dnode = require('dnode');
-    
-    dnode(function (client) {
-        // Poll the client's own temperature() in celsius and convert that value to
-        // fahrenheit in the supplied callback
-        this.clientTempF = function (cb) {
-            client.temperature(function (degC) {
-                var degF = Math.round(degC * 9 / 5 + 32);
-                cb(degF);
-            });
-        }; 
-    }).listen(6060);
-
-examples/bidirectional/client.js:
-
-    var dnode = require('dnode');
-    
-    var client = dnode({
-        // Compute the client's temperature and stuff that value into the callback
-        
-        temperature : function (cb) {
-            var degC = Math.round(20 + Math.random() * 10 - 5);
-            console.log(degC + '° C');
-            cb(degC);
-        }
-    });
-    
-    client.connect(6060, function (remote, conn) {
-        // Call the server's conversion routine, which polls the client's
-        // temperature in celsius degrees and converts to fahrenheit
-        
-        remote.clientTempF(function (degF) {
-            console.log(degF + '° F');
-            conn.end(); // all done!
-        });
-    });
-
-dnode in the browser!
----------------------
-
-You can make dnode connections in the browser too!
-Just pass your webserver to `.listen()` and you're good to go!
-
-This one uses the built-in node http server:
-
-examples/web-http/server.js:
-
-    var http = require('http');
-    var fs = require('fs');
-    var dnode = require('dnode');
-    
-    var index = fs.readFileSync(__dirname + '/index.html');
-    
-    var server = http.createServer(function (req, res) {
-        if (req.url === '/') {
-            res.writeHead(200, { 'Content-Type' : 'text/html' });
-            res.end(index);
-        }
-        else {
-            res.writeHead(404, { 'Content-Type' : 'text/html' });
-            res.end('not found');
-        }
-    });
-    
-    dnode(function (client) {
-        this.cat = function (cb) {
-            cb('meow');
-        };
-    }).listen(server);
-    
-    server.listen(6857);
-    console.log('http://localhost:6857/');
-
-And then just whip up a quick `index.html`.
-The browser-side source is mounted at `/dnode.js` automatically!
-
-examples/web-http/index.html:
-
-    <html>
-    <head>
-    <script src="/dnode.js" type="text/javascript"></script>
-    <script type="text/javascript">
-        window.onload = function () {
-            DNode.connect(function (remote) {
-                remote.cat(function (says) {
-                    document.getElementById('says').innerHTML = says;
-                });
-            });
-        };
-    </script>
-    </head>
-    <body>
-    The cat says <span id="says">?</span>.
-    </body>
-    </html>
 
 more examples
 -------------
@@ -283,6 +244,8 @@ If you install with npm they will be fetched automatically.
 read more
 =========
 
+* [slides from my dnode talk at parisoma](http://substack.net/posts/9aabb1)
+
 * [Roll your own PubSub with DNode](http://substack.net/posts/9bac3e/Roll-your-own-PubSub-with-DNode)
     (Note: EventEmitters are no longer exported directly, use
     [browserify](https://github.com/substack/node-browserify) to get them back)
@@ -307,6 +270,6 @@ between scripts written in different languages.
 * [dnode-perl](http://github.com/substack/dnode-perl)
 * [dnode-ruby](http://github.com/substack/dnode-ruby)
 
-There's a python one in the works too at
-* [dnode-python](https://github.com/jesusabdullah/dnode-python)
-but it's not finished yet.
+There's a 
+[dnode-python](https://github.com/jesusabdullah/dnode-python)
+in the works too but it's not finished yet.
