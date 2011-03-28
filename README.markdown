@@ -98,7 +98,7 @@ Awesome it works!
 
 The dnode browser source automatically gets hosted at `/dnode.js` and it also
 works with
-[browserify](https://github.com/substack/dnode/tree/master/examples/web-browserify)
+[browserify](https://github.com/substack/node-browserify)
 [out of the box](https://github.com/substack/dnode/tree/master/examples/web-browserify).
 
 how it works
