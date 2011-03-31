@@ -1,6 +1,6 @@
 {
     "name" : "dnode",
-    "version" : "0.6.4",
+    "version" : "0.6.5",
     "description" : "Execute remote callbacks with a JSON-based protocol. RMI for network sockets and socket.io too!",
     "main" : "./index.js",
     "keywords" : [
