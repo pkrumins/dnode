@@ -5,7 +5,7 @@
     var dnode = require('dnode');
     
     window.onload = function () {
-        dnode.connect(function (remote) {
+        dnode.connect(function (remote, conn) {
             remote.cat(function (says) {
                 document.getElementById('says').innerHTML = says;
             });

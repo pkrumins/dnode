@@ -40,6 +40,7 @@ dnode.prototype.connect = function () {
     });
     
     sock.on('disconnect', function () {
+        client.emit('end');
         self.emit('end');
     });
     
