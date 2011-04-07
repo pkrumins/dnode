@@ -39,10 +39,20 @@ exports.recon = function (assert) {
         });
     }
     
+    var tc1 = setTimeout(function () {
+        assert.fail('never got first close');
+    }, 2000);
+    
+    var tc2 = setTimeout(function () {
+        assert.fail('never got second close');
+    }, 2000);
+    
     server.once('close', function () {
+        clearTimeout(tc1);
         server = makeServer(33);
         
         server.once('close', function () {
+            clearTimeout(tc2);
             assert.eql(res, { 10 : 10 * 5,  33 : 33 * 5 });
         });
     });

@@ -40,32 +40,35 @@ dnode.prototype.connect = function () {
         
         stream.on('error', (function (err) {
             if (err.code === 'ECONNREFUSED') {
-                this.emit('refused');
+                client.emit('refused');
                 
                 setTimeout((function () {
-                    this.emit('reconnect');
+                    client.emit('reconnect');
                     dnode.prototype.connect.apply(this, args);
                 }).bind(this), params.reconnect);
             }
-            else this.emit('error', err)
+            else client.emit('error', err)
         }).bind(this));
         
         this.once('end', (function () {
             if (!params.reconnect) return;
-            this.emit('drop');
+            client.emit('drop');
             
             setTimeout((function () {
                 if (!params.reconnect) return;
-                this.emit('reconnect');
+                client.emit('reconnect');
                 dnode.prototype.connect.apply(this, args);
             }).bind(this), params.reconnect);
         }).bind(this));
     }
     else {
-        stream.on('error', this.emit.bind(this, 'error'));
+        stream.on('error', client.emit.bind(client, 'error'));
     }
     
-    stream.on('end', this.emit.bind(this, 'end'));
+    stream.on('end', (function () {
+        this.emit('end');
+        client.emit('end');
+    }).bind(this));
     
     stream.on('connect', (function () {
         client.start();
@@ -144,7 +147,9 @@ dnode.prototype.listen = function () {
             if (stream.writable) {
                 stream.write(JSON.stringify(req) + '\n');
             }
-            // silently ignore data sent to non-writable streams
+            else {
+                client.emit('dropped', req);
+            }
         });
         
         if (params.block) {
