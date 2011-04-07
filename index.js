@@ -27,16 +27,7 @@ dnode.prototype.use = function (middleware) {
 dnode.prototype.connect = function () {
     var params = protocol.parseArgs(arguments);
     var stream = params.stream;
-    var client = this.proto.create();
-    
-    process.nextTick(function () {
-        if (client.listeners('error').length === 0) {
-            // default error handler to keep everything from crashing
-            client.on('error', function (err) {
-                console.error(err && err.stack || err);
-            })
-        }
-    });
+    var client = null;
     
     if (params.port) {
         stream = net.createConnection(params.port, params.host);
@@ -45,21 +36,20 @@ dnode.prototype.connect = function () {
     }
     
     if (params.reconnect) {
-        var args = arguments;
-        
         stream.on('error', (function (err) {
             if (err.code === 'ECONNREFUSED') {
-                client.emit('refused');
+                if (client) client.emit('refused');
                 
                 setTimeout((function () {
-                    client.emit('reconnect');
+                    if (client) client.emit('reconnect');
                     dnode.prototype.connect.apply(this, args);
                 }).bind(this), params.reconnect);
             }
-            else client.emit('error', err)
+            else if (client) client.emit('error', err)
+            else this.emit('error', err)
         }).bind(this));
         
-        this.once('end', (function () {
+        stream.once('end', (function () {
             if (!params.reconnect) return;
             client.emit('drop');
             
@@ -71,45 +61,43 @@ dnode.prototype.connect = function () {
         }).bind(this));
     }
     else {
-        stream.on('error', client.emit.bind(client, 'error'));
+        stream.on('error', (function (err) {
+            if (client) client.emit('error', err)
+            else this.emit('error', err)
+        }).bind(this));
     }
     
-    stream.on('end', (function () {
-        this.emit('end');
-        client.emit('end');
-    }).bind(this));
+    var args = arguments;
     
     stream.on('connect', (function () {
-        client.start();
-        this.emit('connect');
-    }).bind(this));
-    
-    client.end = function () {
-        if (params.reconnect) params.reconnect = 0;
-        stream.end();
-    };
-    
-    client.destroy = stream.destroy.bind(stream);
-    client.stream = stream;
-    
-    this.stack.forEach(function (middleware) {
-        middleware.call(client.instance, client.remote, client);
-    });
-    
-    client.on('request', function (req) {
-        stream.write(JSON.stringify(req) + '\n');
-    });
-    
-    if (params.block) {
-        client.on('remote', function () {
-            params.block.call(client.instance, client.remote, client);
+        client = createClient(this.proto, stream);
+        
+        client.end = function () {
+            if (params.reconnect) params.reconnect = 0;
+            stream.end();
+        };
+        
+        this.stack.forEach(function (middleware) {
+            middleware.call(client.instance, client.remote, client);
         });
-    }
-    
-    Lazy(stream).lines
-        .map(String)
-        .forEach(client.parse)
-    ;
+        
+        if (params.block) {
+            client.on('remote', function () {
+                params.block.call(client.instance, client.remote, client);
+            });
+        }
+        
+        process.nextTick(function () {
+            if (client.listeners('error').length === 0) {
+                // default error handler to keep everything from crashing
+                client.on('error', function (err) {
+                    console.error(err && err.stack || err);
+                })
+            }
+        });
+        
+        client.start();
+    }).bind(this));
     
     return this;
 };
@@ -158,14 +146,8 @@ dnode.prototype.listen = function () {
     
     server.on('error', this.emit.bind(this, 'error'));
     
-    if (!this.servers) this.servers = {};
-    
-    var serverId = Math.floor(Math.random() * Math.pow(2,32)).toString(16);
-    this.servers[serverId] = server;
-    
-    server.on('close', (function () {
-        delete this.servers[serverId];
-    }).bind(this));
+    this.server = server;
+    server.on('close', this.emit.bind(this, 'close'));
     
     return this;
 };
@@ -215,20 +197,7 @@ dnode.prototype.end = function () {
 };
 
 dnode.prototype.close = function () {
-    var servers = this.servers || {};
-    
-    var check = (function () {
-        if (Object.keys(servers).length === 0) {
-            this.emit('close');
-        }
-    }).bind(this);
-    
-    Object.keys(servers).forEach((function (id) {
-        servers[id].on('close', check);
-        servers[id].close();
-    }).bind(this));
-    
-    check();
+    this.server.close();
 };
  
 dnode.connect = function () {
