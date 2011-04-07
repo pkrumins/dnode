@@ -140,35 +140,11 @@ dnode.prototype.listen = function () {
     
     var clients = {};
     server.on('connection', (function (stream) {
-        var client = this.proto.create();
-        
-        process.nextTick(function () {
-            if (client.listeners('error').length === 0) {
-                // default error handler to keep everything from crashing
-                client.on('error', function (err) {
-                    console.error(err && err.stack || err);
-                })
-            }
-        });
-        
+        var client = createClient(this.proto, stream);
         clients[client.id] = client;
-        client.stream = stream;
-        client.end = stream.end.bind(stream);
-        client.destroy = stream.destroy.bind(stream);
-        
-        stream.on('end', client.emit.bind(client, 'end'));
         
         this.stack.forEach(function (middleware) {
             middleware.call(client.instance, client.remote, client);
-        });
-        
-        client.on('request', function (req) {
-            if (stream.writable) {
-                stream.write(JSON.stringify(req) + '\n');
-            }
-            else {
-                client.emit('dropped', req);
-            }
         });
         
         if (params.block) {
@@ -176,11 +152,6 @@ dnode.prototype.listen = function () {
                 params.block.call(client.instance, client.remote, client);
             });
         }
-        
-        Lazy(stream).lines
-            .map(String)
-            .forEach(client.parse)
-        ;
         
         client.start();
     }).bind(this));
@@ -198,6 +169,41 @@ dnode.prototype.listen = function () {
     
     return this;
 };
+
+function createClient (proto, stream) {
+    var client = proto.create();
+    
+    process.nextTick(function () {
+        if (client.listeners('error').length === 0) {
+            // default error handler to keep everything from crashing
+            client.on('error', function (err) {
+                console.error(err && err.stack || err);
+            })
+        }
+    });
+    
+    client.stream = stream;
+    client.end = stream.end.bind(stream);
+    client.destroy = stream.destroy.bind(stream);
+    
+    stream.on('end', client.emit.bind(client, 'end'));
+    
+    client.on('request', function (req) {
+        if (stream.writable) {
+            stream.write(JSON.stringify(req) + '\n');
+        }
+        else {
+            client.emit('dropped', req);
+        }
+    });
+    
+    Lazy(stream).lines
+        .map(String)
+        .forEach(client.parse)
+    ;
+    
+    return client;
+}
 
 dnode.prototype.end = function () {
     Object.keys(this.proto.sessions)
