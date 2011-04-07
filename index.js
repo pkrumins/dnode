@@ -29,6 +29,15 @@ dnode.prototype.connect = function () {
     var stream = params.stream;
     var client = this.proto.create();
     
+    process.nextTick(function () {
+        if (client.listeners('error').length === 0) {
+            // default error handler to keep everything from crashing
+            client.on('error', function (err) {
+                console.error(err && err.stack || err);
+            })
+        }
+    });
+    
     if (params.port) {
         stream = net.createConnection(params.port, params.host);
         stream.remoteAddress = params.host || '127.0.0.1';
@@ -132,6 +141,16 @@ dnode.prototype.listen = function () {
     var clients = {};
     server.on('connection', (function (stream) {
         var client = this.proto.create();
+        
+        process.nextTick(function () {
+            if (client.listeners('error').length === 0) {
+                // default error handler to keep everything from crashing
+                client.on('error', function (err) {
+                    console.error(err && err.stack || err);
+                })
+            }
+        });
+        
         clients[client.id] = client;
         client.stream = stream;
         client.end = stream.end.bind(stream);
@@ -167,8 +186,15 @@ dnode.prototype.listen = function () {
     }).bind(this));
     
     server.on('error', this.emit.bind(this, 'error'));
-    if (!this.servers) this.servers = [];
-    this.servers.push(server);
+    
+    if (!this.servers) this.servers = {};
+    
+    var serverId = Math.floor(Math.random() * Math.pow(2,32)).toString(16);
+    this.servers[serverId] = server;
+    
+    server.on('close', (function () {
+        delete this.servers[serverId];
+    }).bind(this));
     
     return this;
 };
@@ -183,15 +209,20 @@ dnode.prototype.end = function () {
 };
 
 dnode.prototype.close = function () {
-    var servers = this.servers || [];
-    var waiting = servers.length;
-    servers.forEach((function (server) {
-        server.once('close', (function () {
-            waiting --;
-            if (waiting === 0) this.emit('close');
-        }).bind(this));
-        server.close();
+    var servers = this.servers || {};
+    
+    var check = (function () {
+        if (Object.keys(servers).length === 0) {
+            this.emit('close');
+        }
+    }).bind(this);
+    
+    Object.keys(servers).forEach((function (id) {
+        servers[id].on('close', check);
+        servers[id].close();
     }).bind(this));
+    
+    check();
 };
  
 dnode.connect = function () {
