@@ -122,7 +122,13 @@ dnode.prototype.listen = function () {
     if (params.port) {
         params.host = params.host || '127.0.0.1';
         if (params.key) {
-            var options = { key: params.key, cert: params.cert };
+            var options = {
+              key: params.key,
+              cert: params.cert,
+              ca: params.ca,
+              requestCert: params.requestCert,
+              rejectUnauthorized: params.rejectUnauthorized
+            };
             server = tls.createServer(options);
             server.listen(
               params.port, params.host,
