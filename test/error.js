@@ -1,11 +1,12 @@
-var DNode = require('dnode');
+var dnode = require('dnode');
 var sys = require('sys');
+var assert = require('assert');
 
-exports.errors = function (assert) {
+exports.errors = function () {
     var port = Math.floor(Math.random() * 40000 + 10000);
     var errors = { server : [], client : [] };
     
-    var server = DNode(function (remote, conn) {
+    var server = dnode(function (remote, conn) {
         conn.on('error', function (err) {
             errors.server.push(err);
         });
@@ -43,7 +44,7 @@ exports.errors = function (assert) {
     });
     
     server.on('ready', function () {
-        var client = DNode(function (client, conn) {
+        var client = dnode(function (client, conn) {
             conn.on('error', function (err) {
                 errors.client.push(err);
             });

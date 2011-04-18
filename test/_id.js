@@ -1,6 +1,7 @@
 var dnode = require('dnode');
+var assert = require('assert');
 
-exports._id = function (assert) {
+exports._id = function () {
     var port = Math.floor(Math.random() * 40000 + 10000);
     
     var server = dnode({ _id : 1337 }).listen(port);

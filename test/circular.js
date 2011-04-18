@@ -1,17 +1,15 @@
-var DNode = require('dnode');
-var sys = require('sys');
+var dnode = require('dnode');
+var util = require('util');
+var assert = require('assert');
 
-exports['circular refs'] = function (assert) {
+exports['circular refs'] = function () {
     var port = Math.floor(Math.random() * 40000 + 10000);
     
-    var server = DNode({
+    var server = dnode({
         sendObj : function (ref, f) {
             assert.equal(ref.a, 1);
             assert.equal(ref.b, 2);
-            assert.equal(
-                sys.inspect(ref.c),
-                sys.inspect(ref)
-            );
+            assert.eql(ref.c, ref);
             
             ref.d = ref.c;
             
@@ -20,21 +18,15 @@ exports['circular refs'] = function (assert) {
     }).listen(port);
     
     server.on('ready', function () {
-        DNode.connect(port, function (remote, conn) {
+        dnode.connect(port, function (remote, conn) {
             var obj = { a : 1, b : 2 };
             obj.c = obj;
             
             remote.sendObj(obj, function (ref) {
                 assert.equal(ref.a, 1);
                 assert.equal(ref.b, 2);
-                assert.equal(
-                    sys.inspect(ref.c),
-                    sys.inspect(ref)
-                );
-                assert.equal(
-                    sys.inspect(ref.d),
-                    sys.inspect(ref)
-                );
+                assert.eql(ref.c, ref);
+                assert.eql(ref.d, ref);
                 conn.end();
                 server.close();
             });

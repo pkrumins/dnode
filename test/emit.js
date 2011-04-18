@@ -1,8 +1,8 @@
-var DNode = require('dnode');
+var dnode = require('dnode');
 var EventEmitter = require('events').EventEmitter;
-var sys = require('sys');
+var assert = require('assert');
 
-exports['event emitter test'] = function (assert) {
+exports['event emitter test'] = function () {
     var emitted = false;
     var ev = new EventEmitter;
     ev.emit = ev.emit.bind(ev);
@@ -10,7 +10,7 @@ exports['event emitter test'] = function (assert) {
     ev.on('test1', function (a, b, c) {
         assert.equal(a, 1);
         assert.equal(b, 2);
-        assert.equal(sys.inspect(c), sys.inspect([3,4]));
+        assert.eql(c, [3,4]);
         emitted = true;
     });
     
@@ -42,9 +42,9 @@ exports['event emitter test'] = function (assert) {
     
     var port = Math.floor(Math.random() * 40000 + 10000);
     
-    var server = DNode(Server).listen(port);
+    var server = dnode(Server).listen(port);
     server.on('ready', function () {
-        DNode.connect(port, function (remote, conn) {
+        dnode.connect(port, function (remote, conn) {
             remote.pass('test1', ev);
             var test2_calls = 0;
             remote.on('test2', function f () {
