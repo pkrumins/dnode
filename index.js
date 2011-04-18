@@ -34,7 +34,7 @@ dnode.prototype.connect = function () {
     if (params.port) {
         params.host = params.host || '127.0.0.1';
         if (params.key) {
-            var options = { key: params.key, cert: params.cert};
+            var options = { key: params.key, cert: params.cert };
             stream = tls.connect(params.port, params.host, options, function() {
                 attachDnode();
             });
@@ -120,11 +120,22 @@ dnode.prototype.listen = function () {
     var server = params.server;
     
     if (params.port) {
-        server = net.createServer();
-        server.listen(
-            params.port, params.host,
-            this.emit.bind(this, 'ready')
-        );
+        params.host = params.host || '127.0.0.1';
+        if (params.key) {
+            var options = { key: params.key, cert: params.cert };
+            server = tls.createServer(options);
+            server.listen(
+              params.port, params.host,
+              this.emit.bind(this, 'ready')
+            );
+        }
+        else {
+            server = net.createServer();
+            server.listen(
+                params.port, params.host,
+                this.emit.bind(this, 'ready')
+            );
+        }
     }
     else if (server && server instanceof http.Server
     || 'httpAllowHalfOpen' in server || params.webserver) {
