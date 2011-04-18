@@ -1,4 +1,5 @@
 var net = require('net');
+var tls = require('tls');
 var http = require('http');
 var EventEmitter = require('events').EventEmitter;
 
@@ -28,12 +29,26 @@ dnode.prototype.connect = function () {
     var params = protocol.parseArgs(arguments);
     var stream = params.stream;
     var client = null;
+    var self   = this;
     
     if (params.port) {
-        stream = net.createConnection(params.port, params.host);
-        stream.remoteAddress = params.host || '127.0.0.1';
-        stream.remotePort = params.port;
+        params.host = params.host || '127.0.0.1';
+        if (params.key) {
+            var options = { key: params.key, cert: params.cert};
+            stream = tls.connect(params.port, params.host, options, function() {
+                attachDnode();
+            });
+        }
+        else {
+            stream = net.createConnection(params.port, params.host);
+            stream.on('connect', function() {
+              attachDnode();
+            });
+        }
     }
+    
+    stream.remoteAddress = params.host;
+    stream.remotePort = params.port;
     
     if (params.reconnect) {
         stream.on('error', (function (err) {
@@ -67,17 +82,15 @@ dnode.prototype.connect = function () {
         }).bind(this));
     }
     
-    var args = arguments;
-    
-    stream.on('connect', (function () {
-        client = createClient(this.proto, stream);
+    function attachDnode() {
+        client = createClient(self.proto, stream);
         
         client.end = function () {
             if (params.reconnect) params.reconnect = 0;
             stream.end();
         };
         
-        this.stack.forEach(function (middleware) {
+        self.stack.forEach(function (middleware) {
             middleware.call(client.instance, client.remote, client);
         });
         
@@ -97,7 +110,7 @@ dnode.prototype.connect = function () {
         });
         
         client.start();
-    }).bind(this));
+    };
     
     return this;
 };
@@ -127,7 +140,10 @@ dnode.prototype.listen = function () {
     }
     
     var clients = {};
-    server.on('connection', (function (stream) {
+    var listenFor = server instanceof tls.Server 
+                    ? 'secureConnection' 
+                    : 'connection' ;
+    server.on(listenFor, (function (stream) {
         var client = createClient(this.proto, stream);
         clients[client.id] = client;
         
