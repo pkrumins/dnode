@@ -24,7 +24,7 @@
         "lazy" : ">=1.0.2",
         "traverse" : ">=0.3.1",
         "browserify" : ">=0.2.9",
-        "dnode-protocol" : ">=0.0.5"
+        "dnode-protocol" : ">=0.0.7"
     },
     "bundleDependencies" : [ "dnode-protocol" ],
     "browserify" : {
