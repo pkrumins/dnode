@@ -1,6 +1,6 @@
 {
     "name" : "dnode",
-    "version" : "0.6.7",
+    "version" : "0.6.8",
     "description" : "freestyle RPC like a boss",
     "main" : "./index.js",
     "keywords" : [
@@ -16,7 +16,7 @@
         "url" : "http://github.com/substack/dnode.git"
     },
     "directories" : {
-        "lib" : "./lib",
+        "lib" : ".",
         "examples" : "./examples"
     },
     "dependencies" : {
