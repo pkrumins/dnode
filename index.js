@@ -45,7 +45,9 @@ dnode.prototype.connect = function () {
                 attachDnode();
             });
         }
-    }
+    } else {
+      attachDnode();
+    } 
     
     stream.remoteAddress = params.host;
     stream.remotePort = params.port;
