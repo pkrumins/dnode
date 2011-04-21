@@ -1,0 +1,3 @@
+[submodule "node_modules/dnode-protocol"]
+	path = node_modules/dnode-protocol
+	url = git://github.com/guybrush/dnode-protocol.git
