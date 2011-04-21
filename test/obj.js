@@ -1,16 +1,17 @@
-var DNode = require('dnode');
+var dnode = require('dnode');
+var assert = require('assert');
 
-exports['object ref tests'] = function (assert) {
+exports['object ref tests'] = function () {
     var port = Math.floor(Math.random() * 40000 + 10000);
     
     var obj = { a : 1, b : 2, f : function (n,g) { g(n * 20) } };
     
-    var server = DNode({
+    var server = dnode({
         getObject : function (f) { f(obj) },
     }).listen(port);
     
     server.on('ready', function () {
-        DNode.connect(port, function (remote, conn) {
+        dnode.connect(port, function (remote, conn) {
             remote.getObject(function (rObj) {
                 assert.equal(rObj.a, 1);
                 assert.equal(rObj.b, 2);

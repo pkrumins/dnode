@@ -1,9 +1,10 @@
-var DNode = require('dnode');
+var dnode = require('dnode');
+var assert = require('assert');
 
-exports.double = function (assert) {
+exports.double = function () {
     var port = Math.floor(Math.random() * 40000 + 10000);
     
-    var server = DNode({
+    var server = dnode({
         z : function (f, g, h) {
             f(10, function (x) {
                 g(10, function (y) {
@@ -14,7 +15,7 @@ exports.double = function (assert) {
     }).listen(port);
     
     server.on('ready', function () {
-        DNode.connect(port, function (remote, conn) {
+        dnode.connect(port, function (remote, conn) {
             remote.z(
                 function (x,f) { f(x * 2) },
                 function (x,f) { f(x / 2) },

@@ -1,12 +1,12 @@
-var DNode = require('dnode');
-var sys = require('sys');
+var dnode = require('dnode');
+var assert = require('assert');
 
-exports['bidirectional'] = function (assert) {
+exports['bidirectional'] = function () {
     var port = Math.floor(Math.random() * 40000 + 10000);
     
     var counts = { timesX : 0, clientX : 0, x : 0 };
     
-    var server = DNode(function (client) {
+    var server = dnode(function (client) {
         this.timesX = function (n,f) {
             assert.equal(n, 3, "timesX's n == 3");
             counts.timesX ++;
@@ -19,7 +19,7 @@ exports['bidirectional'] = function (assert) {
     }).listen(port);
     
     server.on('ready', function () {
-        DNode({
+        dnode({
             x : function (f) {
                 counts.x ++;
                 f(20);
@@ -32,7 +32,7 @@ exports['bidirectional'] = function (assert) {
             });
         });
     });
-        
+    
     server.once('close', function () {
         assert.equal(counts.timesX, 1, 'timesX called once');
         assert.equal(counts.clientX, 1, 'clientX called once');

@@ -1,6 +1,7 @@
 var dnode = require('dnode');
+var assert = require('assert');
 
-exports.simple = function (assert) {
+exports.simple = function () {
     var port = Math.floor(Math.random() * 40000 + 10000);
     
     var server = dnode({
