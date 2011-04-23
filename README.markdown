@@ -171,6 +171,10 @@ If you pass a webserver (http.Server, https.Server, connect, express) to
 listen(), socket.io will be bound to the webserver and the dnode browser source
 will be hosted at `options.mount || "/dnode.js"`.
 
+You can pass options through to socket.io with the `io` parameter:
+
+    dnode(...).listen(webserver, { io : { flashPolicyServer : false } });
+
 Returns `this` so you can chain multiple listeners.
 
 .use(middleware)

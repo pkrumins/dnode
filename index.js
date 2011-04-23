@@ -45,7 +45,8 @@ dnode.prototype.connect = function () {
                 attachDnode();              
             });
         }
-    } else {
+    }
+    else {
       attachDnode();
     } 
     
