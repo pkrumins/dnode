@@ -273,6 +273,7 @@ between scripts written in different languages.
 
 * [dnode-perl](http://github.com/substack/dnode-perl)
 * [dnode-ruby](http://github.com/substack/dnode-ruby)
+* [dnode-java](https://github.com/aslakhellesoy/dnode-java)
 
 There's a 
 [dnode-python](https://github.com/jesusabdullah/dnode-python)
