@@ -288,3 +288,11 @@ between scripts written in different languages.
 There's a 
 [dnode-python](https://github.com/jesusabdullah/dnode-python)
 in the works too but it's not finished yet.
+
+shameless plug
+==============
+
+Want to make sure your crazy javascript-heavy app still works in other
+browsers?
+Give [browserling](http://browserling.com) a spin!
+Browsers in your browser. Powered by dnode.
