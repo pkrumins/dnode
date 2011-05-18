@@ -22,12 +22,14 @@ dnode between two node.js processes
 
 Just write a server.js:
 
-    var dnode = require('dnode');
-    
-    var server = dnode({
-        zing : function (n, cb) { cb(n * 100) }
-    });
-    server.listen(5050);
+```javascript
+var dnode = require('dnode');
+
+var server = dnode({
+    zing : function (n, cb) { cb(n * 100) }
+});
+server.listen(5050);
+````
 
 Run it...
 
@@ -35,13 +37,15 @@ Run it...
 
 Then you can whip up a client.js that calls the server's `zing` function!
 
-    var dnode = require('dnode');
+```javascript
+var dnode = require('dnode');
 
-    dnode.connect(5050, function (remote) {
-        remote.zing(66, function (n) {
-            console.log('n = ' + n);
-        });
+dnode.connect(5050, function (remote) {
+    remote.zing(66, function (n) {
+        console.log('n = ' + n);
     });
+});
+````
 
 *** 
 
@@ -56,44 +60,48 @@ We can retrofit the previous example to run in the browser.
 
 Just write a server.js:
 
-    var express = require('express');
-    var app = express.createServer();
-    app.use(express.static(__dirname));
-    
-    app.listen(8080);
-    console.log('http://localhost:8080/');
-    
-    // then just pass the server app handle to .listen()!
-    
-    var dnode = require('dnode');
-    var server = dnode({
-        zing : function (n, cb) { cb(n * 100) }
-    });
-    server.listen(app);
+````javascript
+var express = require('express');
+var app = express.createServer();
+app.use(express.static(__dirname));
+
+app.listen(8080);
+console.log('http://localhost:8080/');
+
+// then just pass the server app handle to .listen()!
+
+var dnode = require('dnode');
+var server = dnode({
+    zing : function (n, cb) { cb(n * 100) }
+});
+server.listen(app);
+````
 
 and whip up an index.html:
 
-    <html>
-    <head>
-    <script src="/dnode.js" type="text/javascript"></script>
-    <script type="text/javascript">
-        window.onload = function () {
-            
-            DNode.connect(function (remote) {
-                remote.zing(66, function (n) {
-                    document.getElementById('result').innerHTML = n;
-                });
+````html
+<html>
+<head>
+<script src="/dnode.js" type="text/javascript"></script>
+<script type="text/javascript">
+    window.onload = function () {
+        
+        DNode.connect(function (remote) {
+            remote.zing(66, function (n) {
+                document.getElementById('result').innerHTML = n;
             });
-            
-        };
-    </script>
-    </head>
-    <body>
-    
-    n = <span id="result">?</span>
-    
-    </body>
-    </html>
+        });
+        
+    };
+</script>
+</head>
+<body>
+
+n = <span id="result">?</span>
+
+</body>
+</html>
+````
 
 then just run the server.js:
 
@@ -183,7 +191,9 @@ will be hosted at `options.mount || "/dnode.js"`.
 
 You can pass options through to socket.io with the `io` parameter:
 
-    dnode(...).listen(webserver, { io : { flashPolicyServer : false } });
+````javascript
+dnode(...).listen(webserver, { io : { flashPolicyServer : false } });
+````
 
 Returns `this` so you can chain multiple listeners.
 
