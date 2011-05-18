@@ -28,7 +28,6 @@
         "browserify" : ">=0.3.6 <0.4",
         "dnode-protocol" : ">=0.0.8"
     },
-    "bundleDependencies" : [ "dnode-protocol" ],
     "browserify" : {
         "name" : "dnode",
         "main" : "./browser/index.js",
