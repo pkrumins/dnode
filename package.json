@@ -28,6 +28,9 @@
         "browserify" : ">=0.4.1 <0.5",
         "dnode-protocol" : ">=0.0.8"
     },
+    "devDependencies" : {
+        "expresso" : ">=0.7.6 <0.8"
+    },
     "browserify" : {
         "name" : "dnode",
         "main" : "./browser/index.js",
