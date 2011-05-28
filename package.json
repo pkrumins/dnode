@@ -1,6 +1,6 @@
 {
     "name" : "dnode",
-    "version" : "0.6.11",
+    "version" : "0.6.12",
     "description" : "freestyle RPC",
     "main" : "./index.js",
     "keywords" : [
@@ -25,8 +25,8 @@
         "socket.io" : ">=0.6.1 <0.7",
         "lazy" : ">=1.0.2 <1.1",
         "traverse" : ">=0.3.1 <0.4",
-        "browserify" : ">=0.4.1 <0.5",
-        "dnode-protocol" : ">=0.0.8"
+        "browserify" : ">=0.4.13 <0.5",
+        "dnode-protocol" : ">=0.0.9 <0.1"
     },
     "devDependencies" : {
         "expresso" : ">=0.7.6 <0.8"

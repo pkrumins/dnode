@@ -6,7 +6,7 @@ var EventEmitter = require('events').EventEmitter;
 var protocol = require('dnode-protocol');
 var Lazy = require('lazy');
 
-var SocketIO = require('./lib/stream_socketio');
+var SocketIO = null;
 
 exports = module.exports = dnode;
 
@@ -152,6 +152,7 @@ dnode.prototype.listen = function () {
     else if (server && server instanceof http.Server
     || 'httpAllowHalfOpen' in server || params.webserver) {
         // a webserver, use socket.io
+        if (!SocketIO) SocketIO = require('./lib/stream_socketio');
         server = SocketIO(
             server || params.webserver,
             params.mount || '/dnode.js',
