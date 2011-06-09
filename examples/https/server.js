@@ -23,9 +23,13 @@ var server = https.createServer(opts, function (req, res) {
         res.writeHead(200, { 'Content-Type' : 'text/html' });
         res.end(index);
     }
-    else {
-        res.writeHead(404, { 'Content-Type' : 'text/html' });
-        res.end('Not found!');
+    else if (!res.finished) {
+        process.nextTick(function () {
+            if (!res.finished) {
+                res.writeHead(404, { 'Content-Type' : 'text/html' });
+                res.end('Not found!');
+            }
+        });
     }
 });
 
