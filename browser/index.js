@@ -1,6 +1,6 @@
 var protocol = require('dnode-protocol');
 var EventEmitter = require('events').EventEmitter;
-var io = require('dnode/socket.io').io;
+var io = require('./socket.io').io;
 
 var exports = module.exports = dnode;
 
