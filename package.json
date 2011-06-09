@@ -29,7 +29,8 @@
         "dnode-protocol" : ">=0.0.9 <0.1"
     },
     "devDependencies" : {
-        "expresso" : ">=0.7.6 <0.8"
+        "expresso" : ">=0.7.6 <0.8",
+        "dnode" : "0.7.1"
     },
     "browserify" : {
         "name" : "dnode",
