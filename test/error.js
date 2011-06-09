@@ -40,7 +40,9 @@ exports.errors = function () {
         
         assert.equal(errors.server.length, 2);
         
-        assert.eql(errors.client, [ 'Local error' ]);
+        setTimeout(function () {
+            assert.eql(errors.client, [ 'Local error' ]);
+        }, 100);
     });
     
     server.on('ready', function () {
