@@ -35,7 +35,8 @@
         "name" : "dnode",
         "main" : "./browser/index.js",
         "base" : "./browser",
-        "require" : [ "dnode-protocol" ]
+        "require" : [ "dnode-protocol" ],
+        "dependencies" : {}
     },
     "engine" : {
         "node" : ">=0.4.0"
