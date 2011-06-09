@@ -34,21 +34,22 @@ exports.errors = function () {
         
         try { undefined.name }
         catch (refErr) {
-            assert.eql(refErr.message, errors.server[1].message);
-            assert.eql(refErr.type, errors.server[1].type);
+            process.nextTick(function () {
+                assert.eql(refErr.message, errors.server[1].message);
+                assert.eql(refErr.type, errors.server[1].type);
+                assert.equal(errors.server.length, 2);
+            });
         }
-        
-        assert.equal(errors.server.length, 2);
-        
-        setTimeout(function () {
-            assert.eql(errors.client, [ 'Local error' ]);
-        }, 100);
     });
     
     server.on('ready', function () {
         var client = dnode(function (client, conn) {
             conn.on('error', function (err) {
                 errors.client.push(err);
+            });
+            
+            conn.on('end', function () {
+                assert.eql(errors.client, [ 'Local error' ]);
             });
             
             this.pow = function () {
@@ -58,11 +59,12 @@ exports.errors = function () {
             remote.one();
             remote.two();
             remote.three();
+            
             setTimeout(function () {
                 conn.end();
                 server.end();
                 server.close();
-            }, 100);
+            }, 500);
         });
     });
 };
