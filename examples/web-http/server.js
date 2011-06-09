@@ -10,9 +10,13 @@ var server = http.createServer(function (req, res) {
         res.end(index);
     }
     else if (!res.finished) {
-        res.setCode = 404;
-        res.setHeader('content-type', 'text/html');
-        res.end('not found');
+        process.nextTick(function () {
+            if (!res.finished) {
+                res.setCode = 404;
+                res.setHeader('content-type', 'text/html');
+                res.end('not found');
+            }
+        });
     }
 });
 
