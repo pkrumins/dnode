@@ -1,9 +1,29 @@
-// simple DNode chat server
+// simple dnode chat server with browserify
+
+var express = require('express');
+var app = express.createServer();
+app.use(express.static(__dirname));
+
+var browserify = require('browserify');
+app.use(browserify({
+    require : [
+        'dnode',
+        { jquery : 'jquery-browserify' }
+    ],
+    entry : __dirname + '/entry.js'
+}));
+
+app.listen(6061);
+console.log('http://localhost:6061/');
 
 var EventEmitter = require('events').EventEmitter;
 var emitter = new EventEmitter;
 
 var clients = {};
+
+var dnode = require('dnode');
+dnode(ChatServer).listen(app);
+
 function ChatServer (client, con) {
     var evNames = [ 'joined', 'said', 'parted' ];
     
@@ -32,16 +52,3 @@ function ChatServer (client, con) {
         cb(Object.keys(clients))
     };
 }
-
-var connect = require('connect');
-var server = connect.createServer()
-    .use(connect.static(__dirname));
-
-var DNode = require('dnode');
-DNode(ChatServer).listen(server, {
-    transports : 'websocket xhr-multipart xhr-polling htmlfile'.split(' '),
-});
-
-server.listen(6061);
-
-console.log('http://localhost:6061/');
