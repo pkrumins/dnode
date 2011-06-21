@@ -68,3 +68,20 @@ exports.errors = function () {
         });
     });
 };
+
+exports.refused = function () {
+    var port = Math.floor(Math.random() * 40000 + 10000);
+    var client = dnode.connect(port, function (remote, conn) {
+        assert.fail('should have been refused, very unlikely');
+    });
+    
+    var to = setTimeout(function () {
+        assert.fail('never caught error');
+    }, 5000);
+    
+    client.on('error', function (err) {
+        clearTimeout(to);
+        assert.equal(err.code, 'ECONNREFUSED');
+        assert.equal(err.syscall, 'connect');
+    });
+}
