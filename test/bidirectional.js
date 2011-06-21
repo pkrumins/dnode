@@ -1,4 +1,4 @@
-var dnode = require('dnode');
+var dnode = require('../');
 var assert = require('assert');
 
 exports['bidirectional'] = function () {

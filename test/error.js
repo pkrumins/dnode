@@ -1,4 +1,4 @@
-var dnode = require('dnode');
+var dnode = require('../');
 var sys = require('sys');
 var assert = require('assert');
 

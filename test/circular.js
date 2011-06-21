@@ -1,4 +1,4 @@
-var dnode = require('dnode');
+var dnode = require('../');
 var util = require('util');
 var assert = require('assert');
 

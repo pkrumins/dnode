@@ -1,4 +1,4 @@
-var dnode = require('dnode');
+var dnode = require('../');
 var EventEmitter = require('events').EventEmitter;
 var assert = require('assert');
 

@@ -7,7 +7,7 @@
 // (B) and (D) are examples for using dnode to create server and client
 
 var assert = require('assert');
-var dnode = require('dnode');
+var dnode = require('../');
 var tls = require('tls');
 var fs = require('fs');
 var ports = [3001,3002];

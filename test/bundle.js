@@ -1,5 +1,5 @@
 var assert = require('assert');
-var dnode = require('dnode');
+var dnode = require('../');
 var http = require('http');
 var express = require('express');
 
