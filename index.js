@@ -181,9 +181,11 @@ dnode.prototype.listen = function () {
     }
     
     var clients = {};
-    var listenFor = server instanceof tls.Server 
-                    ? 'secureConnection' 
-                    : 'connection' ;
+    var listenFor = server instanceof tls.Server
+        ? 'secureConnection'
+        : 'connection'
+    ;
+    
     server.on(listenFor, (function (stream) {
         var client = createClient(this.proto, stream);
         clients[client.id] = client;
