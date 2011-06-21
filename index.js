@@ -164,7 +164,7 @@ dnode.prototype.listen = function () {
     }
     else if (server && (
         server instanceof http.Server
-        || server.hasOwnPropertyName('httpAllowHalfOpen')
+        || server.hasOwnProperty('httpAllowHalfOpen')
         || params.webserver
     )) {
         // a webserver, use socket.io
