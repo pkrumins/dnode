@@ -162,8 +162,11 @@ dnode.prototype.listen = function () {
             this.emit.bind(this, 'ready')
         );
     }
-    else if (server && server instanceof http.Server
-    || 'httpAllowHalfOpen' in server || params.webserver) {
+    else if (server && (
+        server instanceof http.Server
+        || server.hasOwnPropertyName('httpAllowHalfOpen')
+        || params.webserver
+    )) {
         // a webserver, use socket.io
         if (!SocketIO) SocketIO = require('./lib/stream_socketio');
         server = SocketIO(
