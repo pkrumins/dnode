@@ -2,8 +2,7 @@ var fs = require('fs');
 var path = require('path');
 var browserify = require('browserify');
 
-//var src = browserify({ filter : require('uglify-js') })
-var src = browserify()
+var src = browserify({ filter : require('uglify-js') })
     .require(__dirname + '/../browser/index.js')
     .bundle()
 ;
