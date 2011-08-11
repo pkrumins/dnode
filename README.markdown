@@ -257,10 +257,12 @@ Using [npm](http://npmjs.org):
 
     npm install dnode
 
-Or check out the repository and link your development copy:
+Or check out the repository and fetch the deps with npm, then build the bundle:
 
     git clone https://github.com/substack/dnode.git
-    cd dnode && npm link
+    cd dnode
+    npm install --dev
+    node bin/bundle.js
 
 The dnode dependencies are listed in the
 [package.json](https://github.com/substack/dnode/tree/master/package.json).
