@@ -12,6 +12,7 @@ It works over network sockets and even in the browser with
 Plus, there are dnode implementations for
 [perl](http://github.com/substack/dnode-perl),
 [ruby](http://github.com/substack/dnode-ruby),
+[php](https://github.com/bergie/dnode-php),
 and
 [java](https://github.com/aslakhellesoy/dnode-java),
 so you can glue
