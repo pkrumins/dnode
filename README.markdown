@@ -297,6 +297,7 @@ between scripts written in different languages.
 
 * [dnode-perl](http://github.com/substack/dnode-perl)
 * [dnode-ruby](http://github.com/substack/dnode-ruby)
+* [dnode-php](https://github.com/bergie/dnode-php)
 * [dnode-java](https://github.com/aslakhellesoy/dnode-java)
 
 There's a 
