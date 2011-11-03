@@ -1,6 +1,6 @@
 var protocol = require('dnode-protocol');
 var EventEmitter = require('events').EventEmitter;
-var io = require('./socket.io').io;
+var io = require('socket.io-client');
 
 var exports = module.exports = dnode;
 
@@ -25,8 +25,12 @@ dnode.prototype.connect = function () {
     
     if (!params.port) params.port = parseInt(window.location.port, 10);
     if (isNaN(params.port)) delete params.port;
-    var sock = client.socketio = new io.Socket(
-        params.host || window.location.hostname,
+    
+    var proto = (params.proto || window.location.protocol)
+        .replace(/:.*/, '') + '://';
+    
+    var sock = client.socketio = io.connect(
+        proto + (params.host || window.location.host),
         params
     );
     
@@ -34,7 +38,7 @@ dnode.prototype.connect = function () {
         sock.disconnect();
     };
     
-    sock.on('connect', function () {
+    sock.on('connection', function () {
         client.start();
         self.emit('connect');
     });
@@ -59,8 +63,6 @@ dnode.prototype.connect = function () {
     this.stack.forEach(function (middleware) {
         middleware.call(client.instance, client.remote, client);
     });
-    
-    sock.connect();
 };
 
 exports.connect = function () {
