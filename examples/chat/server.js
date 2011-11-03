@@ -5,13 +5,7 @@ var app = express.createServer();
 app.use(express.static(__dirname));
 
 var browserify = require('browserify');
-app.use(browserify({
-    require : [
-        'dnode',
-        { jquery : 'jquery-browserify' }
-    ],
-    entry : __dirname + '/entry.js'
-}));
+app.use(browserify(__dirname + '/entry.js', { watch : true }));
 
 app.listen(6061);
 console.log('http://localhost:6061/');
@@ -21,13 +15,15 @@ var emitter = new EventEmitter;
 
 var clients = {};
 
-var dnode = require('dnode');
+var dnode = require('../../');
 dnode(ChatServer).listen(app);
 
 function ChatServer (client, con) {
+console.dir(client);
     var evNames = [ 'joined', 'said', 'parted' ];
     
     con.on('ready', function () {
+console.log('ready! ' + client.name);
         evNames.forEach(function (name) {
             emitter.on(name, client[name]);
         });
