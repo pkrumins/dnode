@@ -23,7 +23,6 @@ console.dir(client);
     var evNames = [ 'joined', 'said', 'parted' ];
     
     con.on('ready', function () {
-console.log('ready! ' + client.name);
         evNames.forEach(function (name) {
             emitter.on(name, client[name]);
         });
@@ -34,7 +33,9 @@ console.log('ready! ' + client.name);
     
     con.on('end', function () {
         evNames.forEach(function (name) {
-            emitter.removeListener(name, client[name]);
+            if (typeof client[name] === 'function') {
+                emitter.removeListener(name, client[name]);
+            }
         });
         emitter.emit('parted', client.name);
         delete clients[client.name];

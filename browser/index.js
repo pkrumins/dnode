@@ -1,6 +1,7 @@
 var protocol = require('dnode-protocol');
 var EventEmitter = require('events').EventEmitter;
 var io = require('socket.io-client');
+var json = typeof JSON === 'object' ? JSON : require('jsonify');
 
 var exports = module.exports = dnode;
 
@@ -23,9 +24,6 @@ dnode.prototype.connect = function () {
     var params = protocol.parseArgs(arguments);
     var client = self.proto.create();
     
-    if (!params.port) params.port = parseInt(window.location.port, 10);
-    if (isNaN(params.port)) delete params.port;
-    
     var proto = (params.proto || window.location.protocol)
         .replace(/:.*/, '') + '://';
     
@@ -38,7 +36,7 @@ dnode.prototype.connect = function () {
         sock.disconnect();
     };
     
-    sock.on('connection', function () {
+    sock.on('connect', function () {
         client.start();
         self.emit('connect');
     });
@@ -51,7 +49,7 @@ dnode.prototype.connect = function () {
     sock.on('message', client.parse);
     
     client.on('request', function (req) {
-        sock.send(JSON.stringify(req) + '\n');
+        sock.send(json.stringify(req) + '\n');
     });
     
     if (params.block) {

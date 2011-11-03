@@ -127,6 +127,7 @@ dnode.prototype.connect = function () {
 };
 
 dnode.prototype.listen = function () {
+    var self = this;
     var params = protocol.parseArgs(arguments);
     var server = params.server;
     
@@ -187,11 +188,11 @@ dnode.prototype.listen = function () {
         : 'connection'
     ;
     
-    server.on(listenFor, (function (stream) {
-        var client = createClient(this.proto, stream);
+    server.on(listenFor, function (stream) {
+        var client = createClient(self.proto, stream);
         clients[client.id] = client;
         
-        this.stack.forEach(function (middleware) {
+        self.stack.forEach(function (middleware) {
             middleware.call(client.instance, client.remote, client);
         });
         
@@ -202,7 +203,7 @@ dnode.prototype.listen = function () {
         }
         
         client.start();
-    }).bind(this));
+    });
     
     this.server = server;
     server.on('close', this.emit.bind(this, 'close'));
