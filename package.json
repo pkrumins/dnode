@@ -1,6 +1,6 @@
 {
     "name" : "dnode",
-    "version" : "0.8.2",
+    "version" : "0.9.0",
     "description" : "freestyle RPC",
     "main" : "./index.js",
     "keywords" : [
@@ -32,6 +32,9 @@
         "tap" : "0.0.x",
         "browserify" : "1.4.x",
         "uglify-js" : "1.0.6"
+    },
+    "scripts" : {
+        "test" : "tap test/*.js"
     },
     "browserify" : "browser/index.js",
     "engine" : {
