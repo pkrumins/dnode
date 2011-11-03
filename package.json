@@ -29,7 +29,7 @@
         "jsonify" : "0.0.x"
     },
     "devDependencies" : {
-        "expresso" : "0.7.x",
+        "tap" : "0.0.x",
         "browserify" : "1.4.x",
         "uglify-js" : "1.0.6"
     },
