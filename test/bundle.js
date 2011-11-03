@@ -15,7 +15,7 @@ exports.checkCookieHTTP = function () {
             res.end('pow');
         }
     });
-    var server = dnode().listen(web, { io : { log : null } });
+    var server = dnode().listen(web);
     
     web.listen(port, function () {
         var req = {
@@ -49,7 +49,7 @@ exports.checkCookieExpress = function () {
         res.end('pow');
     });
     
-    var server = dnode().listen(app, { io : { log : null } });
+    var server = dnode().listen(app);
     
     app.listen(port, function () {
         var req = {
