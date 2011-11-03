@@ -19,7 +19,6 @@ var dnode = require('../../');
 dnode(ChatServer).listen(app);
 
 function ChatServer (client, con) {
-console.dir(client);
     var evNames = [ 'joined', 'said', 'parted' ];
     
     con.on('ready', function () {
