@@ -132,7 +132,6 @@ dnode.prototype.listen = function () {
     var server = params.server;
     
     if (params.port) {
-        params.host = params.host || '127.0.0.1';
         if (params.key) {
             var options = {
                 key: params.key,
@@ -143,10 +142,18 @@ dnode.prototype.listen = function () {
             };
             server = tls.createServer(options);
             server.on('error', this.emit.bind(this, 'error'));
-            server.listen(
-                params.port, params.host,
-                this.emit.bind(this, 'ready')
-            );
+            if (params.host) {
+                server.listen(
+                    params.port, params.host,
+                    this.emit.bind(this, 'ready')
+                );
+            }
+            else {
+                server.listen(
+                    params.port,
+                    this.emit.bind(this, 'ready')
+                );
+            }
         }
         else {
             server = net.createServer();
