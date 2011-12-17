@@ -14,6 +14,7 @@ function dnode (wrapper) {
     
     this.proto = protocol(wrapper);
     this.stack = [];
+    this.streams = [];
     return this;
 }
 
@@ -52,7 +53,7 @@ dnode.prototype.connect = function () {
         });
     }
     else {
-      attachDnode();
+        attachDnode();
     } 
     
     stream.remoteAddress = params.host;
@@ -93,7 +94,6 @@ dnode.prototype.connect = function () {
     }
     
     function attachDnode() {
-      
         client = createClient(self.proto, stream);
         
         client.end = function () {
@@ -123,6 +123,7 @@ dnode.prototype.connect = function () {
         client.start();
     };
     
+    this.streams.push(stream);
     return this;
 };
 
