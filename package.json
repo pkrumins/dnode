@@ -32,7 +32,8 @@
     "devDependencies" : {
         "tap" : "0.0.x",
         "browserify" : "1.4.x",
-        "uglify-js" : "1.0.6"
+        "uglify-js" : "1.0.6",
+        "express" : "2.5.x"
     },
     "scripts" : {
         "test" : "tap test/*.js"
