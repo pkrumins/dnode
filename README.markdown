@@ -311,3 +311,6 @@ Want to make sure your crazy javascript-heavy app still works in other
 browsers?
 Give [browserling](http://browserling.com) a spin!
 Browsers in your browser. Powered by dnode.
+
+[![build status](https://secure.travis-ci.org/substack/dnode.png)](http://travis-ci.org/substack/dnode)
+
