@@ -273,11 +273,12 @@ dnode.prototype.close = function () {
     var self = this
     try {
         self.server.close();
-    } catch (e) {
+    }
+    catch (e) {
         if (e.message === 'Not running') {
             self.server.emit('close');
-        } else {
-          // forward as error event
+        }
+        else {
           self.server.emit('error', e);
         }
     }
