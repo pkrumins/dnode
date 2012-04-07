@@ -6,6 +6,8 @@ dnode
 DNode is an asynchronous object-oriented RPC system for node.js that lets you
 call remote functions.
 
+[![build status](https://secure.travis-ci.org/substack/dnode.png)](http://travis-ci.org/substack/dnode)
+
 It works over network sockets and even in the browser with
 [socket.io](https://github.com/LearnBoost/Socket.IO).
 
@@ -16,7 +18,7 @@ Plus, there are dnode implementations for
 and
 [java](https://github.com/aslakhellesoy/dnode-java),
 so you can glue
-together all your backend processes swimmingly.
+together all your backend processes.
 
 dnode between two node.js processes
 -----------------------------------
