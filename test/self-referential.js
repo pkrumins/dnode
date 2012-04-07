@@ -1,7 +1,8 @@
 var dnode = require('../')
 var test = require('tap').test;
+var util = require('util');
 
-test('simple', function (t) {
+test('self-referential', function (t) {
     t.plan(6);
     var port = Math.floor(Math.random() * 40000 + 10000);
     
@@ -26,7 +27,7 @@ test('simple', function (t) {
             args.push(args)
             
             remote.print(args, function (m) {
-                t.deepEqual(m, args);
+                t.equal(util.inspect(m), util.inspect(args));
                 
                 conn.end();
                 server.close();
