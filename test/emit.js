@@ -4,7 +4,7 @@ var dnode = require('../');
 
 test('emit events', function (t) {
     t.plan(2);
-    var port = Math.floor(Math.random() * ((1<<16)-1e4)) + 1e4;
+    var port = Math.floor(1e4 + (Math.random() * 5e4 - 1e4));
     
     var subs = [];
     function publish (name) {

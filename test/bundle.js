@@ -10,7 +10,7 @@ if (!path.existsSync(__dirname + '/../browser/bundle.js')) {
 
 test('checkCookieHTTP', function (t) {
     t.plan(3);
-    var port = Math.floor(10000 + (Math.random() * Math.pow(2,16) - 10000));
+    var port = Math.floor(1e4 + (Math.random() * 5e4 - 1e4));
     
     var web = http.createServer(function (req, res) {
         res.setHeader('set-cookie', [ 'foo=bar' ]);
@@ -42,7 +42,7 @@ test('checkCookieHTTP', function (t) {
 
 test('checkCookieExpress', function (t) {
     t.plan(3);
-    var port = Math.floor(10000 + (Math.random() * Math.pow(2,16) - 10000));
+    var port = Math.floor(1e4 + (Math.random() * 5e4 - 1e4));
     
     var app = express.createServer();
     app.use(function (req, res, next) {
