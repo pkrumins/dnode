@@ -3,6 +3,11 @@ var dnode = require('../');
 var http = require('http');
 var express = require('express');
 
+var path = require('path');
+if (!path.existsSync(__dirname + '/../browser/bundle.js')) {
+    require('../bin/bundle.js');
+}
+
 test('checkCookieHTTP', function (t) {
     t.plan(3);
     var port = Math.floor(10000 + (Math.random() * Math.pow(2,16) - 10000));
