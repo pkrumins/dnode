@@ -187,7 +187,7 @@ dnode.prototype.listen = function () {
         // a webserver, use socket.io
         server = SocketIO(
             server || params.webserver,
-            params.mount || '/dnode.js',
+            params.mount === undefined ? '/dnode.js' : params.mount,
             params.io || {}
         );
     }
